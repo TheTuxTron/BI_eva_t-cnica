@@ -9,7 +9,7 @@ if (config.env === 'production' && config.jwtSecret === 'dev-only-secret-change-
 }
 const { app, deps } = await createApp({ config });
 const server = app.listen(config.port, () => {
-  deps.logger.info({ port: config.port, baseUrl: config.publicBaseUrl }, 'kinti_bff_started');
+  deps.logger.info({ port: config.port, baseUrl: config.publicBaseUrl || '(deducida del Host de cada petición)', db: config.dbPath }, 'kinti_bff_started');
   deps.logger.info({ users: DEMO_USERS.map((u) => u.email), password: DEMO_PASSWORD }, 'demo_users');
 });
 

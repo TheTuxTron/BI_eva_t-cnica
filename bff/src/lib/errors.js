@@ -26,3 +26,8 @@ export function parse(schema, data) {
   }
   return r.data;
 }
+
+/** URL pública del BFF: configurada, o deducida del Host con el que llegó la petición. */
+export function baseUrlOf(req, config) {
+  return config.publicBaseUrl || `${req.protocol}://${req.get('host')}`;
+}

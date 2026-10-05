@@ -2,10 +2,12 @@ import { createHash } from 'node:crypto';
 
 export const SDUI_SCHEMA_VERSION = 1;
 
+// Identidad Banco Internacional: naranja #FF8100, café #614E4B, durazno #FFDEBC.
+// La personalización varía la expresión (degradé, sólido, café) sin salir de la marca.
 const THEMES = {
-  joven: { seedColor: '#6A4BD8', accentColor: '#F2994A', label: 'Joven' },
-  clasico: { seedColor: '#E46F0A', accentColor: '#24303D', label: 'Clásico' },
-  premium: { seedColor: '#1F3A5F', accentColor: '#C9A227', label: 'Premium' },
+  joven: { seedColor: '#FF8100', accentColor: '#FFDEBC', hero: 'vibrant', label: 'Joven' },
+  clasico: { seedColor: '#FF8100', accentColor: '#614E4B', hero: 'solid', label: 'Clásico' },
+  premium: { seedColor: '#614E4B', accentColor: '#FF8100', hero: 'deep', label: 'Premium' },
 };
 
 const BASE_ACTIONS = {

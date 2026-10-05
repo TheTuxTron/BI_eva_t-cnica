@@ -1,3 +1,5 @@
+import { unauthorized } from '../lib/errors.js';
+
 /** Segmentación del cliente. En producción vendría de un CDP/modelo; aquí reglas explícitas y auditables. */
 export function ageOf(birthDate, now = new Date()) {
   const b = new Date(birthDate);
@@ -34,6 +36,8 @@ export function getPrefs(db, userId) {
 
 export function userContext(db, userId, now = new Date()) {
   const user = getUser(db, userId);
+  // Token válido de un usuario que ya no existe (p. ej. base reiniciada): sesión inválida, no error 500.
+  if (!user) throw unauthorized('Tu sesión ya no es válida, ingresa nuevamente');
   const accounts = db.prepare('SELECT * FROM accounts WHERE user_id = ? ORDER BY created_at, id').all(userId);
   const total = accounts.reduce((s, a) => s + a.balance_cents, 0);
   const { segment, reason } = computeSegment(user, total, now);

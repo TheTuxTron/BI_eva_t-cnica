@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { asyncH, parse, notFound, badRequest } from '../lib/errors.js';
+import { asyncH, parse, notFound, badRequest, baseUrlOf } from '../lib/errors.js';
 import { signMicroappToken, requireMicroapp } from '../middleware/auth.js';
 import { userContext } from '../services/users.js';
 import { frenchAmortization, savingsProjection, RATES } from '../services/credit.js';
@@ -16,14 +16,14 @@ export const MICROAPPS = [{
 /** Catálogo + emisión de sesión con token de alcance mínimo (aud y scope por micro-app). */
 export function microappsRoutes({ db, config }) {
   const r = Router();
-  r.get('/', (_req, res) => res.json({ items: MICROAPPS.map((m) => ({ ...m, url: `${config.publicBaseUrl}${m.path}` })) }));
+  r.get('/', (req, res) => res.json({ items: MICROAPPS.map((m) => ({ ...m, url: `${baseUrlOf(req, config)}${m.path}` })) }));
   r.post('/:id/session', asyncH(async (req, res) => {
     const app = MICROAPPS.find((m) => m.id === req.params.id);
     if (!app) throw notFound('Micro-app no registrada');
     const ctx = userContext(db, req.userId);
     res.json({
       token: signMicroappToken(config, req.userId, app.id, app.scopes), expiresIn: config.microappTtlSec,
-      url: `${config.publicBaseUrl}${app.path}`, allowedNavigation: app.allowedNavigation,
+      url: `${baseUrlOf(req, config)}${app.path}`, allowedNavigation: app.allowedNavigation,
       context: { firstName: ctx.user.first_name, segment: ctx.segment, theme: ctx.prefs.theme },
     });
   }));

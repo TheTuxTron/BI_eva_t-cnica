@@ -62,11 +62,9 @@ GoRouter buildRouter(SessionCubit session, List<FeatureModule> modules) {
         builder: (_, __, shell) => ShellPage(shell: shell),
         branches: [
           StatefulShellBranch(routes: [GoRoute(path: '/home', builder: (_, __) => const HomePage())]),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(path: '/accounts', builder: (_, s) => AccountsPage(category: s.uri.queryParameters['category'])),
-            ],
-          ),
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/accounts', builder: (_, s) => AccountsPage(category: s.uri.queryParameters['category'])),
+          ]),
           StatefulShellBranch(routes: [GoRoute(path: '/notifications', builder: (_, __) => const NotificationsPage())]),
           StatefulShellBranch(routes: [GoRoute(path: '/settings', builder: (_, __) => const SettingsPage())]),
         ],

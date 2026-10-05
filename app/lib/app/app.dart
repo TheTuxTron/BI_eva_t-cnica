@@ -50,21 +50,20 @@ class _KintiAppState extends State<KintiApp> {
         listenWhen: (a, b) => b.status == SessionStatus.unauthenticated && a.status != b.status,
         listener: (_, __) => sl<ThemeCubit>().reset(),
         child: BlocBuilder<ThemeCubit, ThemeState>(
-          builder:
-              (context, theme) => MaterialApp.router(
-                title: 'Kinti',
-                debugShowCheckedModeBanner: false,
-                scaffoldMessengerKey: rootMessengerKey,
-                theme: KTheme.build(seed: theme.seed, brightness: Brightness.light),
-                darkTheme: KTheme.build(seed: theme.seed, brightness: Brightness.dark),
-                themeMode: theme.mode,
-                locale: const Locale('es'),
-                supportedLocales: const [Locale('es'), Locale('en')],
-                localizationsDelegates: GlobalMaterialLocalizations.delegates,
-                routerConfig: _router,
-                builder: (context, child) => SessionScope(router: _router, child: child ?? const SizedBox.shrink()),
-              ),
+        builder: (context, theme) => MaterialApp.router(
+          title: 'Kinti',
+          debugShowCheckedModeBanner: false,
+          scaffoldMessengerKey: rootMessengerKey,
+          theme: KTheme.build(seed: theme.seed, brightness: Brightness.light, segment: theme.segment),
+          darkTheme: KTheme.build(seed: theme.seed, brightness: Brightness.dark, segment: theme.segment),
+          themeMode: theme.mode,
+          locale: const Locale('es'),
+          supportedLocales: const [Locale('es'), Locale('en')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
+          routerConfig: _router,
+          builder: (context, child) => SessionScope(router: _router, child: child ?? const SizedBox.shrink()),
         ),
+      ),
       ),
     );
   }

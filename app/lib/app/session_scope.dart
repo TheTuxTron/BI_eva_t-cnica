@@ -40,9 +40,7 @@ class SessionScope extends StatelessWidget {
           key: ValueKey(session.user!.id),
           providers: [
             BlocProvider(create: (_) => AccountsCubit(sl<AccountsRepository>())..load()),
-            BlocProvider(
-              create: (_) => HomeExperienceCubit(sl<ExperienceRepository>(), sl<ThemeCubit>(), sl<Telemetry>())..load(),
-            ),
+            BlocProvider(create: (_) => HomeExperienceCubit(sl<ExperienceRepository>(), sl<ThemeCubit>(), sl<Telemetry>())..load()),
             BlocProvider(create: (_) => FxCubit(sl<FxRepository>())..load()),
             BlocProvider(create: (_) => NotificationsCubit(sl<NotificationsRepository>())..refresh()),
           ],
@@ -68,26 +66,22 @@ class _SessionEffectsState extends State<_SessionEffects> {
   @override
   void initState() {
     super.initState();
-        _subs.add(_push.foreground.listen((n) {
-          if (!mounted) return;
-          final notifications = context.read<NotificationsCubit>();
-          final accounts = context.read<AccountsCubit>();
-          notifications.received(n);
-          // Un aviso de dinero recibido cambia saldos: se refrescan en segundo plano.
-          unawaited(accounts.load());
-          rootMessengerKey.currentState?.showSnackBar(
-            SnackBar(
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [Text(n.title, style: const TextStyle(fontWeight: FontWeight.w700)), Text(n.body)],
-            ),
-            action: n.deeplink == null ? null : SnackBarAction(label: 'Ver', onPressed: () => _go(n.deeplink!)),
-            duration: const Duration(seconds: 5),
-          ),
-        );
-      }),
-    );
+    _subs.add(_push.foreground.listen((n) {
+      if (!mounted) return;
+      final notifications = context.read<NotificationsCubit>();
+      final accounts = context.read<AccountsCubit>();
+      notifications.received(n);
+      // Un aviso de dinero recibido cambia saldos: se refrescan en segundo plano.
+      unawaited(accounts.load());
+      rootMessengerKey.currentState?.showSnackBar(SnackBar(
+        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(n.title, style: const TextStyle(fontWeight: FontWeight.w700)),
+          Text(n.body),
+        ]),
+        action: n.deeplink == null ? null : SnackBarAction(label: 'Ver', onPressed: () => _go(n.deeplink!)),
+        duration: const Duration(seconds: 5),
+      ));
+    }));
     _subs.add(_push.opened.listen(_go));
     unawaited(_push.start());
   }

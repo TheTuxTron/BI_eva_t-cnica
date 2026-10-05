@@ -10,15 +10,7 @@ class DeepLinks {
   final Telemetry telemetry;
 
   static const _tabRoots = {'/home', '/accounts', '/notifications', '/settings'};
-  static const _allowedPrefixes = [
-    '/home',
-    '/accounts',
-    '/notifications',
-    '/settings',
-    '/transfer',
-    '/assistant',
-    '/diagnostics',
-  ];
+  static const _allowedPrefixes = ['/home', '/accounts', '/notifications', '/settings', '/transfer', '/assistant', '/diagnostics'];
 
   /// Convierte un deeplink en una ubicación del router, o null si no está permitido.
   static String? resolve(String link) {
@@ -27,10 +19,7 @@ class DeepLinks {
     if (uri.scheme == 'microapp') {
       final id = uri.host;
       if (!RegExp(r'^[a-z0-9-]{3,40}$').hasMatch(id)) return null;
-      return Uri(
-        path: '/microapp/$id',
-        queryParameters: uri.queryParameters.isEmpty ? null : uri.queryParameters,
-      ).toString();
+      return Uri(path: '/microapp/$id', queryParameters: uri.queryParameters.isEmpty ? null : uri.queryParameters).toString();
     }
     if (uri.scheme.isEmpty && _allowedPrefixes.any((p) => uri.path == p || uri.path.startsWith('$p/'))) {
       return uri.toString();

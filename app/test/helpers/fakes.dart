@@ -6,7 +6,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kinti/core/observability/telemetry.dart';
 import 'package:kinti/core/storage/token_store.dart';
 
-/// Adapter HTTP con respuestas guionadas: permite probar interceptores sin red.
 class ScriptedAdapter implements HttpClientAdapter {
   ScriptedAdapter(this.script);
 
@@ -14,13 +13,13 @@ class ScriptedAdapter implements HttpClientAdapter {
   final List<Object> script;
   final List<RequestOptions> requests = [];
 
+  /// Headers tal como se enviaron (foto en el momento del envío).
+  final List<Map<String, dynamic>> sentHeaders = [];
+
   @override
-  Future<ResponseBody> fetch(
-    RequestOptions options,
-    Stream<Uint8List>? requestStream,
-    Future<void>? cancelFuture,
-  ) async {
+  Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
     requests.add(options);
+    sentHeaders.add(Map<String, dynamic>.of(options.headers));
     if (script.isEmpty) throw StateError('Sin más respuestas guionadas para ${options.method} ${options.path}');
     final next = script.removeAt(0);
     if (next is DioExceptionType) throw DioException(requestOptions: options, type: next);
@@ -31,8 +30,7 @@ class ScriptedAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
-ResponseBody jsonBody(int status, Object body, {Map<String, List<String>> headers = const {}}) =>
-    ResponseBody.fromString(
+ResponseBody jsonBody(int status, Object body, {Map<String, List<String>> headers = const {}}) => ResponseBody.fromString(
       jsonEncode(body),
       status,
       headers: {
@@ -53,8 +51,7 @@ class FakeTelemetry implements Telemetry {
   @override
   void breadcrumb(String message, {String category = 'app'}) {}
   @override
-  void recordError(Object error, StackTrace? stack, {bool fatal = false, Map<String, Object?> context = const {}}) =>
-      errors.add(error);
+  void recordError(Object error, StackTrace? stack, {bool fatal = false, Map<String, Object?> context = const {}}) => errors.add(error);
   @override
   void setUser(String? userId) {}
 }

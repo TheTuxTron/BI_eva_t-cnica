@@ -18,45 +18,26 @@ void main() {
     telemetry = FakeTelemetry();
   });
 
-  Future<void> render(WidgetTester tester, List<SduiSection> sections) => tester.pumpWidget(
-    MaterialApp(
-      home: Scaffold(
-        body: SingleChildScrollView(child: SduiRenderer(sections: sections, registry: registry, telemetry: telemetry)),
-      ),
-    ),
-  );
+  Future<void> render(WidgetTester tester, List<SduiSection> sections) => tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: SingleChildScrollView(child: SduiRenderer(sections: sections, registry: registry, telemetry: telemetry))),
+      ));
 
   testWidgets('renderiza componentes en el orden que decide el servidor', (tester) async {
     await render(tester, const [
       SduiSection(id: 'g', type: 'greeting', data: {'title': 'Buenos días, Ana', 'subtitle': 'Cada dólar cuenta.'}),
-      SduiSection(
-        id: 'b',
-        type: 'banner',
-        data: {
-          'title': 'Tu primera meta',
-          'body': 'Ahorra cada quincena',
-          'cta': {'label': 'Simular', 'deeplink': '/assistant'},
-        },
-      ),
-      SduiSection(
-        id: 'q',
-        type: 'quick_actions',
-        data: {
-          'actions': [
-            {'id': 'transfer', 'label': 'Transferir', 'icon': 'swap_horiz', 'deeplink': '/transfer'},
-            {'id': 'savings', 'label': 'Meta de ahorro', 'icon': 'savings', 'deeplink': '/x'},
-          ],
-        },
-      ),
+      SduiSection(id: 'b', type: 'banner', data: {'title': 'Tu primera meta', 'body': 'Ahorra cada quincena', 'cta': {'label': 'Simular', 'deeplink': '/assistant'}}),
+      SduiSection(id: 'q', type: 'quick_actions', data: {
+        'actions': [
+          {'id': 'transfer', 'label': 'Transferir', 'icon': 'swap_horiz', 'deeplink': '/transfer'},
+          {'id': 'savings', 'label': 'Meta de ahorro', 'icon': 'savings', 'deeplink': '/x'},
+        ],
+      }),
     ]);
     expect(find.text('Buenos días, Ana'), findsOneWidget);
     expect(find.text('Tu primera meta'), findsOneWidget);
     expect(find.text('Simular'), findsOneWidget);
     expect(find.text('Transferir'), findsOneWidget);
-    expect(
-      tester.getTopLeft(find.text('Buenos días, Ana')).dy,
-      lessThan(tester.getTopLeft(find.text('Tu primera meta')).dy),
-    );
+    expect(tester.getTopLeft(find.text('Buenos días, Ana')).dy, lessThan(tester.getTopLeft(find.text('Tu primera meta')).dy));
   });
 
   testWidgets('omite componentes desconocidos y aísla los que fallan', (tester) async {

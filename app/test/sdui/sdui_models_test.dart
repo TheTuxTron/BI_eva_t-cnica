@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kinti/features/microapps/presentation/microapp_bridge.dart';
+import 'package:kinti/features/microapps/presentation/microapp_page.dart';
 import 'package:kinti/sdui/fallback_home.dart';
 import 'package:kinti/sdui/sdui_models.dart';
 
@@ -9,19 +10,12 @@ void main() {
       final s = SduiScreen.fromJson({
         'schemaVersion': 1,
         'sections': [
-          {
-            'id': 'a',
-            'type': 'banner',
-            'props': {'title': 'Hola'},
-          },
+          {'id': 'a', 'type': 'banner', 'props': {'title': 'Hola'}},
           {'type': 'sin_id'},
           'basura',
           {'id': 'b', 'type': 'greeting'},
         ],
-        'meta': {
-          'segment': 'joven',
-          'reasons': ['Cliente joven'],
-        },
+        'meta': {'segment': 'joven', 'reasons': ['Cliente joven']},
       });
       expect(s.sections.map((e) => e.id), ['a', 'b']);
       expect(s.sections.first.str('title'), 'Hola');
@@ -61,6 +55,16 @@ void main() {
       final msg = MicroappBridge.sessionMessage(token: 't', apiBase: 'http://x', context: {'firstName': 'Ana'});
       expect(msg, contains('"type":"session"'));
       expect(msg, contains('"v":1'));
+    });
+  });
+  group('URL de micro-app alcanzable desde el dispositivo', () {
+    test('reescribe localhost al host de la API (emulador)', () {
+      final u = reachableUrl(Uri.parse('http://localhost:8080/microapps/x/index.html'), Uri.parse('http://10.0.2.2:8080'));
+      expect(u.toString(), 'http://10.0.2.2:8080/microapps/x/index.html');
+    });
+    test('respeta URLs públicas', () {
+      final u = reachableUrl(Uri.parse('https://cdn.kinti.ec/microapps/x/index.html'), Uri.parse('http://10.0.2.2:8080'));
+      expect(u.host, 'cdn.kinti.ec');
     });
   });
 }

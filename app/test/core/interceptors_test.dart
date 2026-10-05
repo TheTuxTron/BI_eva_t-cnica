@@ -16,11 +16,7 @@ Dio _dio(ScriptedAdapter adapter) {
 void main() {
   group('RetryInterceptor', () {
     test('reintenta GET ante 503 y termina con éxito', () async {
-      final adapter = ScriptedAdapter([
-        jsonBody(503, {}),
-        jsonBody(503, {}),
-        jsonBody(200, {'ok': true}),
-      ]);
+      final adapter = ScriptedAdapter([jsonBody(503, {}), jsonBody(503, {}), jsonBody(200, {'ok': true})]);
       final res = await _dio(adapter).get<Map<String, dynamic>>('/v1/accounts');
       expect(res.data!['ok'], true);
       expect(adapter.requests, hasLength(3));
@@ -33,10 +29,7 @@ void main() {
     });
 
     test('sí reintenta un POST con Idempotency-Key, con la misma clave', () async {
-      final adapter = ScriptedAdapter([
-        DioExceptionType.connectionError,
-        jsonBody(201, {'id': 't1'}),
-      ]);
+      final adapter = ScriptedAdapter([DioExceptionType.connectionError, jsonBody(201, {'id': 't1'})]);
       await _dio(adapter).post<dynamic>('/v1/transfers', options: Options(headers: {'Idempotency-Key': 'abc-123-key'}));
       expect(adapter.requests, hasLength(2));
       expect(adapter.requests.map((r) => r.headers['Idempotency-Key']).toSet(), {'abc-123-key'});
@@ -66,11 +59,7 @@ void main() {
   group('AuthInterceptor', () {
     test('ante 401 refresca el token una vez y repite la petición', () async {
       final tokens = MemoryTokenStore(const AuthTokens(accessToken: 'old', refreshToken: 'r1'));
-      final main = ScriptedAdapter([
-        jsonBody(401, {
-          'error': {'code': 'UNAUTHORIZED', 'message': 'Token expirado'},
-        }),
-      ]);
+      final main = ScriptedAdapter([jsonBody(401, {'error': {'code': 'UNAUTHORIZED', 'message': 'Token expirado'}})]);
       final refresh = ScriptedAdapter([
         jsonBody(200, {'accessToken': 'new', 'refreshToken': 'r2'}),
         jsonBody(200, {'items': []}),
@@ -78,27 +67,22 @@ void main() {
       final refreshDio = Dio(BaseOptions(baseUrl: 'http://test'))..httpClientAdapter = refresh;
       var expired = false;
       final dio = Dio(BaseOptions(baseUrl: 'http://test'))..httpClientAdapter = main;
-      dio.interceptors.add(
-        AuthInterceptor(tokens: tokens, refreshDio: refreshDio, onSessionExpired: () => expired = true),
-      );
+      dio.interceptors.add(AuthInterceptor(tokens: tokens, refreshDio: refreshDio, onSessionExpired: () => expired = true));
 
       final res = await dio.get<Map<String, dynamic>>('/v1/accounts');
       expect(res.statusCode, 200);
-      expect(main.requests.single.headers['Authorization'], 'Bearer old');
-      expect(refresh.requests.last.headers['Authorization'], 'Bearer new');
+      expect(main.sentHeaders.single['Authorization'], 'Bearer old');
+      expect(refresh.sentHeaders.last['Authorization'], 'Bearer new');
       expect(tokens.tokens!.refreshToken, 'r2');
       expect(expired, isFalse);
     });
 
     test('si el refresh es rechazado, cierra la sesión', () async {
       final tokens = MemoryTokenStore(const AuthTokens(accessToken: 'old', refreshToken: 'r1'));
-      final refreshDio = Dio(BaseOptions(baseUrl: 'http://test'))
-        ..httpClientAdapter = ScriptedAdapter([jsonBody(401, {})]);
+      final refreshDio = Dio(BaseOptions(baseUrl: 'http://test'))..httpClientAdapter = ScriptedAdapter([jsonBody(401, {})]);
       var expired = false;
       final dio = Dio(BaseOptions(baseUrl: 'http://test'))..httpClientAdapter = ScriptedAdapter([jsonBody(401, {})]);
-      dio.interceptors.add(
-        AuthInterceptor(tokens: tokens, refreshDio: refreshDio, onSessionExpired: () => expired = true),
-      );
+      dio.interceptors.add(AuthInterceptor(tokens: tokens, refreshDio: refreshDio, onSessionExpired: () => expired = true));
 
       await expectLater(ApiClient(dio).get<dynamic>('/v1/accounts'), throwsA(isA<UnauthorizedFailure>()));
       expect(expired, isTrue);
@@ -120,31 +104,12 @@ void main() {
 
       expect(await failFor(DioExceptionType.connectionError), isA<NetworkFailure>());
       expect(await failFor(DioExceptionType.receiveTimeout), isA<TimeoutFailure>());
-      final unavailable = await failFor(
-        jsonBody(
-          503,
-          {
-            'error': {'code': 'SERVICE_UNAVAILABLE', 'message': 'Caído'},
-          },
-          headers: {
-            'retry-after': ['10'],
-          },
-        ),
-      );
+      final unavailable = await failFor(jsonBody(503, {'error': {'code': 'SERVICE_UNAVAILABLE', 'message': 'Caído'}}, headers: {'retry-after': ['10']}));
       expect(unavailable, isA<ServiceUnavailableFailure>().having((f) => f.retryAfter, 'retryAfter', 10));
       expect(unavailable.isTransient, isTrue);
-      final business = await failFor(
-        jsonBody(400, {
-          'error': {
-            'code': 'BAD_REQUEST',
-            'message': 'Datos inválidos',
-            'requestId': 'rid-1',
-            'details': [
-              {'field': 'cedula', 'message': 'Cédula inválida'},
-            ],
-          },
-        }),
-      );
+      final business = await failFor(jsonBody(400, {
+        'error': {'code': 'BAD_REQUEST', 'message': 'Datos inválidos', 'requestId': 'rid-1', 'details': [{'field': 'cedula', 'message': 'Cédula inválida'}]},
+      }));
       expect(business, isA<BusinessFailure>().having((f) => f.fieldErrors['cedula'], 'campo', 'Cédula inválida'));
       expect(business.requestId, 'rid-1');
       expect(business.isTransient, isFalse);

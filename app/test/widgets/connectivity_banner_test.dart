@@ -13,16 +13,9 @@ void main() {
     final links = StreamController<List<ConnectivityResult>>();
     final health = NetworkHealth();
     final cubit = ConnectivityCubit(health: health, changes: links.stream);
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: BlocProvider.value(
-            value: cubit,
-            child: const Align(alignment: Alignment.bottomCenter, child: ConnectivityBanner()),
-          ),
-        ),
-      ),
-    );
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(body: BlocProvider.value(value: cubit, child: const Align(alignment: Alignment.bottomCenter, child: ConnectivityBanner()))),
+    ));
     expect(find.byKey(const Key('connectivity_banner')), findsNothing);
 
     links.add([ConnectivityResult.none]);

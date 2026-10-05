@@ -27,11 +27,14 @@ void main() {
   });
 
   Widget app() => MaterialApp(
-    home: MultiBlocProvider(
-      providers: [BlocProvider<SessionCubit>.value(value: session), BlocProvider<LoginCubit>.value(value: login)],
-      child: const LoginView(),
-    ),
-  );
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider<SessionCubit>.value(value: session),
+            BlocProvider<LoginCubit>.value(value: login),
+          ],
+          child: const LoginView(),
+        ),
+      );
 
   testWidgets('valida campos vacíos sin llamar al servidor', (tester) async {
     await tester.pumpWidget(app());
@@ -51,16 +54,21 @@ void main() {
     verify(() => login.submit('ana@kinti.ec', 'Kinti2026!')).called(1);
   });
 
-  testWidgets('muestra el error del servidor y el indicador de carga', (tester) async {
-    when(
-      () => login.state,
-    ).thenReturn(const LoginState(failure: UnauthorizedFailure('Usuario o contraseña incorrectos')));
+  testWidgets('muestra el error del servidor', (tester) async {
+    when(() => login.state).thenReturn(
+      const LoginState(failure: UnauthorizedFailure('Usuario o contraseña incorrectos')),
+    );
     await tester.pumpWidget(app());
     expect(find.byKey(const Key('login_error')), findsOneWidget);
+    expect(find.text('Usuario o contraseña incorrectos'), findsOneWidget);
+  });
 
+  testWidgets('muestra el indicador de carga y bloquea el botón mientras envía', (tester) async {
     when(() => login.state).thenReturn(const LoginState(submitting: true));
     await tester.pumpWidget(app());
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    await tester.tap(find.byKey(const Key('login_submit')));
+    verifyNever(() => login.submit(any(), any()));
   });
 
   testWidgets('avisa cuando la sesión expiró por seguridad', (tester) async {

@@ -1,0 +1,40 @@
+name: E2E (emulador Android)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 22 }
+      - name: Levantar BFF
+        working-directory: bff
+        run: |
+          npm ci --no-audit --no-fund
+          nohup npm start > bff.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf localhost:8080/health/ready && break; sleep 1; done
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - name: Habilitar KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Plataformas
+        working-directory: app
+        run: bash ./tool/setup_platforms.sh
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          disable-animations: true
+          working-directory: app
+          script: flutter test integration_test --dart-define=API_BASE_URL=http://10.0.2.2:8080
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: bff-log, path: bff/bff.log }

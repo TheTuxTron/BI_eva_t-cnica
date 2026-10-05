@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Simulador financiero · micro-app</title>
 <style>
-  :root { --bg:#FFFFFF; --ink:#24303D; --muted:#5E6B78; --line:#DDE3EA; --brand:#E46F0A; --soft:#F3F5F8; --ok:#2F8F6B; }
-  :root[data-theme="dark"] { --bg:#151B22; --ink:#E9EEF3; --muted:#A3AFBB; --line:#2C3743; --soft:#1E2630; }
+  :root { --bg:#FFFFFF; --ink:#2B2422; --muted:#6B5D59; --line:#E7DFDA; --brand:#FF8100; --brand-text:#B85A00; --peach:#FFDEBC; --soft:#F7F5F3; --ok:#23785A; }
+  :root[data-theme="dark"] { --bg:#171312; --ink:#F3ECE8; --muted:#BFB1AC; --line:#3A302D; --soft:#221C1A; --brand-text:#FFA347; --peach:#3A2A20; }
   * { box-sizing: border-box; }
   body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--ink); padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); }
   h1 { font-size: 1.35rem; margin: 4px 0 2px; }
   p.lead { color: var(--muted); margin: 0 0 16px; font-size: .95rem; }
   .tabs { display:flex; gap:6px; background:var(--soft); padding:4px; border-radius:12px; margin-bottom:16px; }
   .tabs button { flex:1; border:0; padding:10px 6px; border-radius:9px; background:transparent; color:var(--ink); font-weight:600; font-size:.9rem; min-height:44px; }
-  .tabs button[aria-selected="true"] { background:var(--bg); box-shadow:0 1px 2px rgba(0,0,0,.08); color:var(--brand); }
+  .tabs button[aria-selected="true"] { background:var(--bg); box-shadow:0 1px 2px rgba(0,0,0,.08); color:var(--brand-text); }
   label { display:block; font-size:.85rem; color:var(--muted); margin:12px 0 6px; }
   input[type=number] { width:100%; font-size:1.1rem; padding:12px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--ink); }
   input[type=range] { width:100%; accent-color: var(--brand); }
@@ -22,9 +22,9 @@
   .big { font-size:2rem; font-weight:700; font-variant-numeric: tabular-nums; letter-spacing:-.5px; }
   .muted { color:var(--muted); font-size:.85rem; }
   .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
-  .grid div { background:var(--soft); border-radius:10px; padding:10px 12px; }
+  .grid div { background:var(--peach); border-radius:10px; padding:10px 12px; }
   .grid b { display:block; font-variant-numeric: tabular-nums; }
-  button.primary { width:100%; margin-top:20px; min-height:48px; border:0; border-radius:12px; background:var(--brand); color:#fff; font-weight:700; font-size:1rem; }
+  button.primary { width:100%; margin-top:20px; min-height:48px; border:0; border-radius:12px; background:var(--brand); color:#2B2422; font-weight:700; font-size:1rem; }
   button.ghost { width:100%; margin-top:8px; min-height:44px; border:1px solid var(--line); border-radius:12px; background:transparent; color:var(--ink); font-weight:600; }
   .error { color:#C8443A; margin-top:12px; font-size:.9rem; }
   .bar { height:6px; border-radius:3px; background:var(--soft); overflow:hidden; margin-top:10px; }

@@ -1,13 +1,7 @@
 import '../../../core/network/api_client.dart';
 
 class AssistantReply {
-  const AssistantReply({
-    required this.text,
-    this.suggestions = const [],
-    this.actionLabel,
-    this.actionDeeplink,
-    this.source = 'rules',
-  });
+  const AssistantReply({required this.text, this.suggestions = const [], this.actionLabel, this.actionDeeplink, this.source = 'rules'});
   factory AssistantReply.fromJson(Map<String, dynamic> j) {
     final action = j['action'] is Map ? Map<String, dynamic>.from(j['action'] as Map) : null;
     return AssistantReply(

@@ -17,11 +17,7 @@ class NotificationsModule extends FeatureModule {
     sl.registerLazySingleton(() => NotificationsRepository(sl<ApiClient>(), sl<CacheStore>()));
     if (!sl.isRegistered<PushService>()) {
       sl.registerLazySingleton<PushService>(
-        () => HybridPushService(
-          repo: sl<NotificationsRepository>(),
-          telemetry: sl<Telemetry>(),
-          pollEvery: sl<AppEnv>().pollingInterval,
-        ),
+        () => HybridPushService(repo: sl<NotificationsRepository>(), telemetry: sl<Telemetry>(), pollEvery: sl<AppEnv>().pollingInterval),
       );
     }
   }

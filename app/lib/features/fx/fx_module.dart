@@ -12,10 +12,8 @@ class FxModule extends FeatureModule {
   String get name => 'fx';
 
   @override
-  void registerDependencies(GetIt sl) =>
-      sl.registerLazySingleton(() => FxRepository(sl<ApiClient>(), sl<CacheStore>()));
+  void registerDependencies(GetIt sl) => sl.registerLazySingleton(() => FxRepository(sl<ApiClient>(), sl<CacheStore>()));
 
   @override
-  void registerComponents(SduiRegistry registry) =>
-      registry.register('fx_rates', (_, s) => FxRatesComponent(section: s));
+  void registerComponents(SduiRegistry registry) => registry.register('fx_rates', (_, s) => FxRatesComponent(section: s));
 }

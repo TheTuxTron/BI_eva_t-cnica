@@ -22,15 +22,14 @@ class MicroappsModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
-    GoRoute(
-      path: '/microapp/:id',
-      builder: (_, s) => MicroappPage(appId: s.pathParameters['id']!, query: s.uri.queryParameters),
-    ),
-  ];
+        GoRoute(
+          path: '/microapp/:id',
+          builder: (_, s) => MicroappPage(appId: s.pathParameters['id']!, query: s.uri.queryParameters),
+        ),
+      ];
 
   @override
-  void registerComponents(SduiRegistry registry) =>
-      registry.register('microapp_tile', (_, s) => MicroappTile(section: s));
+  void registerComponents(SduiRegistry registry) => registry.register('microapp_tile', (_, s) => MicroappTile(section: s));
 }
 
 class MicroappTile extends StatelessWidget {
@@ -42,36 +41,24 @@ class MicroappTile extends StatelessWidget {
     return KCard(
       onTap: () {
         sl<Telemetry>().event('action_simulator');
-        sl<DeepLinks>().open(
-          context,
-          section.str('deeplink') ?? 'microapp://${section.str('appId')}',
-          source: 'microapp_tile',
-        );
+        sl<DeepLinks>().open(context, section.str('deeplink') ?? 'microapp://${section.str('appId')}', source: 'microapp_tile');
       },
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(color: scheme.tertiaryContainer, borderRadius: BorderRadius.circular(14)),
-            child: Icon(Icons.calculate_rounded, color: scheme.onTertiaryContainer),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  section.str('title') ?? 'Simulador',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                Text(section.str('description') ?? '', style: Theme.of(context).textTheme.bodySmall),
-              ],
-            ),
-          ),
-          const Icon(Icons.open_in_new_rounded, size: 20),
-        ],
-      ),
+      child: Row(children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(color: scheme.tertiaryContainer, borderRadius: BorderRadius.circular(14)),
+          child: Icon(Icons.calculate_rounded, color: scheme.onTertiaryContainer),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(section.str('title') ?? 'Simulador', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+            Text(section.str('description') ?? '', style: Theme.of(context).textTheme.bodySmall),
+          ]),
+        ),
+        const Icon(Icons.open_in_new_rounded, size: 20),
+      ]),
     );
   }
 }

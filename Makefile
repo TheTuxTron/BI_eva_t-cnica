@@ -11,7 +11,7 @@ hooks: ## Activa el hook de Conventional Commits
 	git config core.hooksPath tool/hooks
 
 bff: ## Levanta el BFF en :8080
-	cd bff && PUBLIC_BASE_URL=$(API) npm run dev
+	cd bff && npm run dev
 
 app: ## Ejecuta la app apuntando al BFF local
 	cd app && flutter run --dart-define=API_BASE_URL=$(API)

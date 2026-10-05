@@ -17,6 +17,8 @@ Plataforma financiera 100 % digital construida con **Flutter** y un **BFF en Nod
 |---|---|
 | Arquitectura y diagramas | [`docs/architecture.md`](docs/architecture.md) |
 | Decisiones (ADR) | [`docs/adr/`](docs/adr/README.md) |
+| Design system y paleta (marca Banco Internacional) | [`docs/design-system.md`](docs/design-system.md) |
+| Revisión funcional por módulo (QA) | [`docs/qa-modulos.md`](docs/qa-modulos.md) |
 | Despliegue, operación y monitoreo | [`docs/deployment-operations.md`](docs/deployment-operations.md) |
 | Conectividad limitada y degradación | [`docs/resilience.md`](docs/resilience.md) |
 | Contrato de micro-apps | [`docs/microapps-contract.md`](docs/microapps-contract.md) |
@@ -32,7 +34,7 @@ Plataforma financiera 100 % digital construida con **Flutter** y un **BFF en Nod
 | Personalización dinámica | SDUI: el BFF decide componentes, orden, contenido y tema según **segmento** (perfil), **hora** (contexto), **uso** (comportamiento) y **preferencias**. Campañas y feature flags sin publicar la app. A/B estable. "¿Por qué veo esto?" | `sdui/`, `bff/src/services/personalization.js`, `bff/test/experience.test.js`, `test/widgets/sdui_renderer_test.dart` |
 | Integración con servicio/micro-app externo | (1) Micro-app "Simulador financiero" de otro equipo en WebView con bridge versionado y token de alcance mínimo. (2) Tipo de cambio real de Frankfurter/BCE con circuit breaker | `features/microapps`, `bff/public/microapps`, `bff/test/microapps.test.js`, `bff/test/resilience.test.js` |
 | Notificaciones push | FCM (si se configura Firebase) + bandeja persistente + respaldo por polling. Deeplinks seguros | `features/notifications`, `bff/src/services/push.js` |
-| Monitoreo en producción | Fachada `Telemetry` (Sentry + logs + eventos de UX), `X-Request-Id` extremo a extremo, Prometheus `/metrics`, health checks, SLOs, alertas y runbooks | `core/observability`, `docs/deployment-operations.md` |
+| Monitoreo en producción | Fachada `Telemetry` (logs estructurados + eventos de UX; destino de crashes enchufable, ver ADR-009), `X-Request-Id` extremo a extremo, Prometheus `/metrics`, health checks, SLOs, alertas y runbooks | `core/observability`, `docs/deployment-operations.md` |
 | Conectividad limitada, latencia e indisponibilidad (descripción) | Matriz de escenarios y mecanismos | `docs/resilience.md` |
 | Conectividad limitada, latencia e indisponibilidad (demostración) | Fault injection en el BFF + panel "Diagnóstico" en la app: carga, reintentos, caché, fallback y recuperación | `features/diagnostics`, `bff/src/middleware/chaos.js`, video |
 | Pruebas unitarias, de widgets y E2E | 25 pruebas del BFF; unitarias (interceptores, SWR, cubits, SDUI, bridge); widgets (login, SDUI, banner de conectividad, montos accesibles); **2 flujos E2E contra el BFF real** | `bff/test`, `app/test`, `app/integration_test` |
@@ -59,7 +61,7 @@ cd app
 ./tool/setup_platforms.sh       # genera android/ios y ajusta manifiestos (solo la primera vez)
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8080   # emulador Android
 #   simulador iOS:   --dart-define=API_BASE_URL=http://localhost:8080
-#   dispositivo:     --dart-define=API_BASE_URL=http://<IP-de-tu-PC>:8080  (y PUBLIC_BASE_URL igual en el BFF)
+#   dispositivo:     --dart-define=API_BASE_URL=http://<IP-de-tu-PC>:8080  (abre el puerto 8080 en el firewall)
 ```
 
 **Con Docker:** `docker compose up --build` levanta el BFF con datos persistentes en un volumen.
@@ -68,8 +70,8 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8080   # emulador Android
 
 | Usuario | Segmento | Qué muestra |
 |---|---|---|
-| `ana@kinti.ec` | Joven | Tema violeta, metas de ahorro, insight de gastos en restaurantes |
-| `carlos@kinti.ec` | Premium | Dos cuentas, inversión primero, tipo de cambio destacado |
+| `ana@kinti.ec` | Joven | Saldo en degradé naranja, metas de ahorro, insight de gastos en restaurantes |
+| `carlos@kinti.ec` | Premium | Tema café profundo con acento naranja, dos cuentas, inversión primero, tipo de cambio destacado |
 | `maria@kinti.ec` | Clásico | Cuenta destino `2200990011` para transferencias |
 
 ### Opcionales
@@ -78,7 +80,6 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8080   # emulador Android
 |---|---|
 | Push reales (FCM) | Crea un proyecto Firebase y coloca `google-services.json` / `GoogleService-Info.plist`. En el BFF, define `FIREBASE_SERVICE_ACCOUNT` con el JSON de la cuenta de servicio. Sin esto, se usa la bandeja + polling |
 | Asistente con LLM | Define `ANTHROPIC_API_KEY` en el BFF |
-| Sentry | `--dart-define=SENTRY_DSN=...` |
 | BFF público para evaluadores | `render.yaml` (Render, plan free) |
 
 ## Pruebas

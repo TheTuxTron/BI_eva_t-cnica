@@ -1,4 +1,4 @@
-package ec.kinti.kinti
+package com.example.kinti
 
 import io.flutter.embedding.android.FlutterActivity
 

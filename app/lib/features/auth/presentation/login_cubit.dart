@@ -30,7 +30,8 @@ class LoginCubit extends Cubit<LoginState> {
       _telemetry.metric('login_duration_ms', sw.elapsedMilliseconds.toDouble());
       _session.signedIn(user);
       emit(const LoginState());
-    } on AppFailure catch (f) {
+    } catch (e) {
+      final f = AppFailure.from(e);
       _telemetry.event('login_failed', {'type': f.runtimeType.toString()});
       emit(LoginState(failure: f));
     }

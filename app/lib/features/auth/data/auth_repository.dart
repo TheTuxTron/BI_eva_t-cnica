@@ -8,11 +8,11 @@ import '../../../core/storage/token_store.dart';
 class UserProfile {
   const UserProfile({required this.id, required this.firstName, required this.lastName, required this.email});
   factory UserProfile.fromJson(Map<String, dynamic> j) => UserProfile(
-    id: j['id'] as String,
-    firstName: j['firstName'] as String,
-    lastName: j['lastName'] as String,
-    email: j['email'] as String,
-  );
+        id: j['id'] as String,
+        firstName: j['firstName'] as String,
+        lastName: j['lastName'] as String,
+        email: j['email'] as String,
+      );
   final String id;
   final String firstName;
   final String lastName;
@@ -36,16 +36,15 @@ class RegistrationData {
   final bool acceptTerms;
 
   Map<String, dynamic> toJson() => {
-    'cedula': cedula,
-    'firstName': firstName,
-    'lastName': lastName,
-    'email': email,
-    'phone': phone,
-    'birthDate':
-        '${birthDate.year.toString().padLeft(4, '0')}-${birthDate.month.toString().padLeft(2, '0')}-${birthDate.day.toString().padLeft(2, '0')}',
-    'password': password,
-    'acceptTerms': acceptTerms,
-  };
+        'cedula': cedula,
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+        'phone': phone,
+        'birthDate': '${birthDate.year.toString().padLeft(4, '0')}-${birthDate.month.toString().padLeft(2, '0')}-${birthDate.day.toString().padLeft(2, '0')}',
+        'password': password,
+        'acceptTerms': acceptTerms,
+      };
 }
 
 class RegistrationTicket {
@@ -66,21 +65,13 @@ class AuthRepository {
   static final _public = Options(extra: {AuthInterceptor.skipAuth: true});
 
   Future<UserProfile> login(String username, String password) async {
-    final json = await api.post<Json>(
-      '/v1/auth/login',
-      body: {'username': username.trim(), 'password': password},
-      options: _public,
-    );
+    final json = await api.post<Json>('/v1/auth/login', body: {'username': username.trim(), 'password': password}, options: _public);
     return _persistSession(json);
   }
 
   Future<RegistrationTicket> register(RegistrationData data) async {
     final j = await api.post<Json>('/v1/auth/register', body: data.toJson(), options: _public);
-    return RegistrationTicket(
-      userId: j['userId'] as String,
-      maskedPhone: j['maskedPhone'] as String,
-      devOtp: j['devOtp'] as String?,
-    );
+    return RegistrationTicket(userId: j['userId'] as String, maskedPhone: j['maskedPhone'] as String, devOtp: j['devOtp'] as String?);
   }
 
   Future<String?> resendOtp(String userId) async {
@@ -115,9 +106,7 @@ class AuthRepository {
     if (t != null) {
       try {
         await api.post<dynamic>('/v1/auth/logout', body: {'refreshToken': t.refreshToken}, options: _public);
-      } catch (_) {
-        /* mejor esfuerzo: la sesión local se elimina igual */
-      }
+      } catch (_) {/* mejor esfuerzo: la sesión local se elimina igual */}
     }
     await tokens.clear();
     await cache.clearAll();
@@ -126,10 +115,7 @@ class AuthRepository {
 
   Future<UserProfile> _persistSession(Json json) async {
     final user = UserProfile.fromJson(Map<String, dynamic>.from(json['user'] as Map));
-    await tokens.save(
-      AuthTokens(accessToken: json['accessToken'] as String, refreshToken: json['refreshToken'] as String),
-      userId: user.id,
-    );
+    await tokens.save(AuthTokens(accessToken: json['accessToken'] as String, refreshToken: json['refreshToken'] as String), userId: user.id);
     cache.setNamespace(user.id);
     await cache.write('profile', user.toJson());
     return user;

@@ -14,20 +14,14 @@ class RegisterState extends Equatable {
   final RegistrationTicket? ticket;
   final Map<String, String> fieldErrors;
 
-  RegisterState copyWith({
-    int? step,
-    bool? submitting,
-    AppFailure? failure,
-    bool clearFailure = false,
-    RegistrationTicket? ticket,
-    Map<String, String>? fieldErrors,
-  }) => RegisterState(
-    step: step ?? this.step,
-    submitting: submitting ?? this.submitting,
-    failure: clearFailure ? null : (failure ?? this.failure),
-    ticket: ticket ?? this.ticket,
-    fieldErrors: fieldErrors ?? this.fieldErrors,
-  );
+  RegisterState copyWith({int? step, bool? submitting, AppFailure? failure, bool clearFailure = false, RegistrationTicket? ticket, Map<String, String>? fieldErrors}) =>
+      RegisterState(
+        step: step ?? this.step,
+        submitting: submitting ?? this.submitting,
+        failure: clearFailure ? null : (failure ?? this.failure),
+        ticket: ticket ?? this.ticket,
+        fieldErrors: fieldErrors ?? this.fieldErrors,
+      );
 
   @override
   List<Object?> get props => [step, submitting, failure, ticket?.userId, fieldErrors];
@@ -42,14 +36,9 @@ class RegisterCubit extends Cubit<RegisterState> {
   final Telemetry _telemetry;
 
   static const _stepOfField = {
-    'cedula': 0,
-    'firstName': 0,
-    'lastName': 0,
-    'birthDate': 0,
-    'email': 1,
-    'phone': 1,
-    'password': 2,
-    'acceptTerms': 2,
+    'cedula': 0, 'firstName': 0, 'lastName': 0, 'birthDate': 0,
+    'email': 1, 'phone': 1,
+    'password': 2, 'acceptTerms': 2,
   };
 
   void next() {
@@ -65,12 +54,11 @@ class RegisterCubit extends Cubit<RegisterState> {
       final ticket = await _repo.register(data);
       _telemetry.event('onboarding_registered');
       emit(state.copyWith(submitting: false, ticket: ticket));
-    } on AppFailure catch (f) {
+    } catch (e) {
+      final f = AppFailure.from(e);
       final fields = f is BusinessFailure ? f.fieldErrors : const <String, String>{};
       // Vuelve al primer paso que contiene un campo con error del servidor.
-      final firstStep = fields.keys
-          .map((k) => _stepOfField[k] ?? state.step)
-          .fold<int>(state.step, (a, b) => b < a ? b : a);
+      final firstStep = fields.keys.map((k) => _stepOfField[k] ?? state.step).fold<int>(state.step, (a, b) => b < a ? b : a);
       _telemetry.event('onboarding_failed', {'code': f is BusinessFailure ? f.code : f.runtimeType.toString()});
       emit(state.copyWith(submitting: false, failure: f, fieldErrors: fields, step: firstStep));
     }
@@ -88,8 +76,7 @@ class OtpState extends Equatable {
 }
 
 class OtpCubit extends Cubit<OtpState> {
-  OtpCubit(this._repo, this._session, this._telemetry, {required this.userId, String? devOtp})
-    : super(OtpState(devOtp: devOtp));
+  OtpCubit(this._repo, this._session, this._telemetry, {required this.userId, String? devOtp}) : super(OtpState(devOtp: devOtp));
   final AuthRepository _repo;
   final SessionCubit _session;
   final Telemetry _telemetry;
@@ -106,7 +93,8 @@ class OtpCubit extends Cubit<OtpState> {
       final user = await _repo.verifyOtp(userId, code);
       _telemetry.event('onboarding_completed');
       _session.signedIn(user);
-    } on AppFailure catch (f) {
+    } catch (e) {
+      final f = AppFailure.from(e);
       emit(OtpState(failure: f, devOtp: state.devOtp, resendIn: state.resendIn));
     }
   }
@@ -115,7 +103,8 @@ class OtpCubit extends Cubit<OtpState> {
     try {
       final dev = await _repo.resendOtp(userId);
       emit(OtpState(devOtp: dev, resendIn: 30));
-    } on AppFailure catch (f) {
+    } catch (e) {
+      final f = AppFailure.from(e);
       emit(OtpState(failure: f, devOtp: state.devOtp, resendIn: state.resendIn));
     }
   }

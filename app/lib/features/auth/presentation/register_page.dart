@@ -14,8 +14,10 @@ import 'register_cubit.dart';
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
   @override
-  Widget build(BuildContext context) =>
-      BlocProvider(create: (_) => RegisterCubit(sl<AuthRepository>(), sl<Telemetry>()), child: const RegisterView());
+  Widget build(BuildContext context) => BlocProvider(
+        create: (_) => RegisterCubit(sl<AuthRepository>(), sl<Telemetry>()),
+        child: const RegisterView(),
+      );
 }
 
 class RegisterView extends StatefulWidget {
@@ -68,18 +70,16 @@ class _RegisterViewState extends State<RegisterView> {
       context.read<RegisterCubit>().next();
       return;
     }
-    context.read<RegisterCubit>().submit(
-      RegistrationData(
-        cedula: _cedula.text.trim(),
-        firstName: _first.text.trim(),
-        lastName: _last.text.trim(),
-        email: _email.text.trim(),
-        phone: _phone.text.trim(),
-        birthDate: _birth!,
-        password: _pass.text,
-        acceptTerms: _terms,
-      ),
-    );
+    context.read<RegisterCubit>().submit(RegistrationData(
+          cedula: _cedula.text.trim(),
+          firstName: _first.text.trim(),
+          lastName: _last.text.trim(),
+          email: _email.text.trim(),
+          phone: _phone.text.trim(),
+          birthDate: _birth!,
+          password: _pass.text,
+          acceptTerms: _terms,
+        ));
   }
 
   @override
@@ -87,199 +87,144 @@ class _RegisterViewState extends State<RegisterView> {
     return BlocConsumer<RegisterCubit, RegisterState>(
       listenWhen: (a, b) => a.ticket != b.ticket && b.ticket != null,
       listener: (context, s) => context.pushReplacement('/register/otp', extra: s.ticket),
-      builder:
-          (context, s) => PopScope(
-            canPop: s.step == 0,
-            onPopInvokedWithResult: (didPop, _) {
-              if (!didPop) context.read<RegisterCubit>().back();
-            },
-            child: Scaffold(
-              appBar: AppBar(title: Text('Abre tu cuenta · ${_titles[s.step]}')),
-              body: SafeArea(
-                child: Column(
-                  children: [
-                    Semantics(
-                      label: 'Paso ${s.step + 1} de 3',
-                      child: LinearProgressIndicator(value: (s.step + 1) / 3, minHeight: 3),
-                    ),
-                    Expanded(
-                      child: ListView(
-                        padding: const EdgeInsets.all(KSpace.lg),
-                        children: [
-                          IndexedStack(index: s.step, children: [_identity(s), _contact(s), _security(s)]),
-                          if (s.failure != null && s.fieldErrors.isEmpty) ...[
-                            const SizedBox(height: KSpace.md),
-                            Text(s.failure!.message, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                          ],
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(KSpace.lg),
-                      child: LoadingButton(
-                        key: const Key('register_continue'),
-                        label: s.step < 2 ? 'Continuar' : 'Crear mi cuenta',
-                        loading: s.submitting,
-                        onPressed: () => _continue(s),
-                      ),
-                    ),
+      builder: (context, s) => PopScope(
+        canPop: s.step == 0,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) context.read<RegisterCubit>().back();
+        },
+        child: Scaffold(
+          appBar: AppBar(title: Text('Abre tu cuenta · ${_titles[s.step]}')),
+          body: SafeArea(
+            child: Column(children: [
+              Semantics(
+                label: 'Paso ${s.step + 1} de 3',
+                child: LinearProgressIndicator(value: (s.step + 1) / 3, minHeight: 3),
+              ),
+              Expanded(
+                child: ListView(padding: const EdgeInsets.all(KSpace.lg), children: [
+                  IndexedStack(index: s.step, children: [_identity(s), _contact(s), _security(s)]),
+                  if (s.failure != null && s.fieldErrors.isEmpty) ...[
+                    const SizedBox(height: KSpace.md),
+                    FailureText(s.failure!, key: const Key('register_error')),
                   ],
+                ]),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(KSpace.lg),
+                child: LoadingButton(
+                  key: const Key('register_continue'),
+                  label: s.step < 2 ? 'Continuar' : 'Crear mi cuenta',
+                  loading: s.submitting,
+                  onPressed: () => _continue(s),
                 ),
               ),
-            ),
+            ]),
           ),
+        ),
+      ),
     );
   }
 
   Widget _identity(RegisterState s) => Form(
-    key: _forms[0],
-    child: Column(
-      children: [
-        TextFormField(
-          key: const Key('reg_cedula'),
-          controller: _cedula,
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
-          decoration: kInput(
-            context,
-            label: 'Cédula',
-            error: s.fieldErrors['cedula'],
-            prefix: const Icon(Icons.badge_outlined),
+        key: _forms[0],
+        child: Column(children: [
+          TextFormField(
+            key: const Key('reg_cedula'),
+            controller: _cedula,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
+            decoration: kInput(context, label: 'Cédula', error: s.fieldErrors['cedula'], prefix: const Icon(Icons.badge_outlined)),
+            validator: (v) => Cedula.isValid(v ?? '') ? null : 'Cédula ecuatoriana inválida',
           ),
-          validator: (v) => Cedula.isValid(v ?? '') ? null : 'Cédula ecuatoriana inválida',
-        ),
-        const SizedBox(height: KSpace.md),
-        TextFormField(
-          controller: _first,
-          textCapitalization: TextCapitalization.words,
-          decoration: kInput(context, label: 'Nombres', error: s.fieldErrors['firstName']),
-          validator: (v) => (v ?? '').trim().length < 2 ? 'Ingresa tus nombres' : null,
-        ),
-        const SizedBox(height: KSpace.md),
-        TextFormField(
-          controller: _last,
-          textCapitalization: TextCapitalization.words,
-          decoration: kInput(context, label: 'Apellidos', error: s.fieldErrors['lastName']),
-          validator: (v) => (v ?? '').trim().length < 2 ? 'Ingresa tus apellidos' : null,
-        ),
-        const SizedBox(height: KSpace.md),
-        KCard(
-          onTap: _pickBirth,
-          child: Row(
-            children: [
+          const SizedBox(height: KSpace.md),
+          TextFormField(
+            controller: _first,
+            textCapitalization: TextCapitalization.words,
+            decoration: kInput(context, label: 'Nombres', error: s.fieldErrors['firstName']),
+            validator: (v) => (v ?? '').trim().length < 2 ? 'Ingresa tus nombres' : null,
+          ),
+          const SizedBox(height: KSpace.md),
+          TextFormField(
+            controller: _last,
+            textCapitalization: TextCapitalization.words,
+            decoration: kInput(context, label: 'Apellidos', error: s.fieldErrors['lastName']),
+            validator: (v) => (v ?? '').trim().length < 2 ? 'Ingresa tus apellidos' : null,
+          ),
+          const SizedBox(height: KSpace.md),
+          KCard(
+            onTap: _pickBirth,
+            child: Row(children: [
               const Icon(Icons.cake_outlined),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(_birth == null ? 'Fecha de nacimiento' : '${_birth!.day}/${_birth!.month}/${_birth!.year}'),
               ),
               const Icon(Icons.edit_calendar_outlined),
-            ],
+            ]),
           ),
-        ),
-      ],
-    ),
-  );
+        ]),
+      );
 
   Widget _contact(RegisterState s) => Form(
-    key: _forms[1],
-    child: Column(
-      children: [
-        TextFormField(
-          controller: _email,
-          keyboardType: TextInputType.emailAddress,
-          autofillHints: const [AutofillHints.email],
-          decoration: kInput(
-            context,
-            label: 'Correo electrónico',
-            error: s.fieldErrors['email'],
-            prefix: const Icon(Icons.alternate_email),
+        key: _forms[1],
+        child: Column(children: [
+          TextFormField(
+            controller: _email,
+            keyboardType: TextInputType.emailAddress,
+            autofillHints: const [AutofillHints.email],
+            decoration: kInput(context, label: 'Correo electrónico', error: s.fieldErrors['email'], prefix: const Icon(Icons.alternate_email)),
+            validator: (v) => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch((v ?? '').trim()) ? null : 'Correo inválido',
           ),
-          validator: (v) => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch((v ?? '').trim()) ? null : 'Correo inválido',
-        ),
-        const SizedBox(height: KSpace.md),
-        TextFormField(
-          controller: _phone,
-          keyboardType: TextInputType.phone,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
-          decoration: kInput(
-            context,
-            label: 'Celular',
-            hint: '09XXXXXXXX',
-            error: s.fieldErrors['phone'],
-            prefix: const Icon(Icons.smartphone),
-            helper: 'Te enviaremos un código de verificación',
+          const SizedBox(height: KSpace.md),
+          TextFormField(
+            controller: _phone,
+            keyboardType: TextInputType.phone,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
+            decoration: kInput(context, label: 'Celular', hint: '09XXXXXXXX', error: s.fieldErrors['phone'], prefix: const Icon(Icons.smartphone), helper: 'Te enviaremos un código de verificación'),
+            validator: (v) => RegExp(r'^09\d{8}$').hasMatch(v ?? '') ? null : 'Celular inválido',
           ),
-          validator: (v) => RegExp(r'^09\d{8}$').hasMatch(v ?? '') ? null : 'Celular inválido',
-        ),
-      ],
-    ),
-  );
+        ]),
+      );
 
   Widget _security(RegisterState s) {
     final p = _pass.text;
-    final rules = [
-      ('Mínimo 8 caracteres', p.length >= 8),
-      ('Una mayúscula', RegExp('[A-Z]').hasMatch(p)),
-      ('Un número', RegExp('[0-9]').hasMatch(p)),
-    ];
+    final rules = [('Mínimo 8 caracteres', p.length >= 8), ('Una mayúscula', RegExp('[A-Z]').hasMatch(p)), ('Un número', RegExp('[0-9]').hasMatch(p))];
     return Form(
       key: _forms[2],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TextFormField(
-            controller: _pass,
-            obscureText: true,
-            onChanged: (_) => setState(() {}),
-            autofillHints: const [AutofillHints.newPassword],
-            decoration: kInput(
-              context,
-              label: 'Crea tu contraseña',
-              error: s.fieldErrors['password'],
-              prefix: const Icon(Icons.lock_outline),
-            ),
-            validator: (_) => rules.every((r) => r.$2) ? null : 'La contraseña no cumple los requisitos',
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        TextFormField(
+          controller: _pass,
+          obscureText: true,
+          onChanged: (_) => setState(() {}),
+          autofillHints: const [AutofillHints.newPassword],
+          decoration: kInput(context, label: 'Crea tu contraseña', error: s.fieldErrors['password'], prefix: const Icon(Icons.lock_outline)),
+          validator: (_) => rules.every((r) => r.$2) ? null : 'La contraseña no cumple los requisitos',
+        ),
+        const SizedBox(height: KSpace.sm),
+        for (final (label, ok) in rules)
+          Semantics(
+            label: '$label: ${ok ? 'cumple' : 'pendiente'}',
+            child: Row(children: [
+              Icon(ok ? Icons.check_circle : Icons.radio_button_unchecked, size: 18, color: ok ? KColors.positive : Theme.of(context).colorScheme.outline),
+              const SizedBox(width: 8),
+              ExcludeSemantics(child: Text(label)),
+            ]),
           ),
-          const SizedBox(height: KSpace.sm),
-          for (final (label, ok) in rules)
-            Semantics(
-              label: '$label: ${ok ? 'cumple' : 'pendiente'}',
-              child: Row(
-                children: [
-                  Icon(
-                    ok ? Icons.check_circle : Icons.radio_button_unchecked,
-                    size: 18,
-                    color: ok ? KColors.positive : Theme.of(context).colorScheme.outline,
-                  ),
-                  const SizedBox(width: 8),
-                  ExcludeSemantics(child: Text(label)),
-                ],
-              ),
+        const SizedBox(height: KSpace.md),
+        FormField<bool>(
+          validator: (_) => _terms ? null : 'Debes aceptar los términos',
+          builder: (field) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              value: _terms,
+              onChanged: (v) => setState(() => _terms = v ?? false),
+              controlAffinity: ListTileControlAffinity.leading,
+              title: const Text('Acepto los términos y el tratamiento de mis datos personales (LOPDP)'),
             ),
-          const SizedBox(height: KSpace.md),
-          FormField<bool>(
-            validator: (_) => _terms ? null : 'Debes aceptar los términos',
-            builder:
-                (field) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      value: _terms,
-                      onChanged: (v) => setState(() => _terms = v ?? false),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      title: const Text('Acepto los términos y el tratamiento de mis datos personales (LOPDP)'),
-                    ),
-                    if (field.hasError)
-                      Text(
-                        field.errorText!,
-                        style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
-                      ),
-                  ],
-                ),
-          ),
-        ],
-      ),
+            if (field.hasError) Text(field.errorText!, style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12)),
+          ]),
+        ),
+      ]),
     );
   }
 }

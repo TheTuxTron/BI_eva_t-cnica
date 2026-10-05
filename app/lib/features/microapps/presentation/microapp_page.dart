@@ -73,7 +73,9 @@ class _MicroappPageState extends State<MicroappPage> {
             return allowed ? NavigationDecision.navigate : NavigationDecision.prevent;
           },
           onWebResourceError: (e) {
-            if (e.isForMainFrame ?? true) _fail(const NetworkFailure());
+            if (e.isForMainFrame ?? true) {
+              _fail(NetworkFailure(detail: 'WebView ${e.errorCode}: ${e.description}'));
+            }
           },
         ),
       );

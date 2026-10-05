@@ -33,16 +33,10 @@ class ThemeCubit extends Cubit<ThemeState> {
   void reset() => emit(const ThemeState());
 
   void _applyJson(Map<String, dynamic> t) {
-    emit(
-      ThemeState(
-        seed: hexColor(t['seedColor'] as String?),
-        mode: switch (t['mode']) {
-          'light' => ThemeMode.light,
-          'dark' => ThemeMode.dark,
-          _ => ThemeMode.system,
-        },
-        segment: (t['segment'] as String?) ?? 'clasico',
-      ),
-    );
+    emit(ThemeState(
+      seed: hexColor(t['seedColor'] as String?),
+      mode: switch (t['mode']) { 'light' => ThemeMode.light, 'dark' => ThemeMode.dark, _ => ThemeMode.system },
+      segment: (t['segment'] as String?) ?? 'clasico',
+    ));
   }
 }

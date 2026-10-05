@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../core/network/failures.dart';
@@ -63,15 +64,14 @@ class _SkeletonState extends State<Skeleton> with SingleTickerProviderStateMixin
     return ExcludeSemantics(
       child: AnimatedBuilder(
         animation: _c,
-        builder:
-            (_, __) => Container(
-              height: widget.height,
-              width: widget.width,
-              decoration: BoxDecoration(
-                color: base.withValues(alpha: 0.06 + 0.06 * _c.value),
-                borderRadius: BorderRadius.circular(widget.radius),
-              ),
-            ),
+        builder: (_, __) => Container(
+          height: widget.height,
+          width: widget.width,
+          decoration: BoxDecoration(
+            color: base.withValues(alpha: 0.06 + 0.06 * _c.value),
+            borderRadius: BorderRadius.circular(widget.radius),
+          ),
+        ),
       ),
     );
   }
@@ -85,11 +85,11 @@ class ErrorView extends StatelessWidget {
   final bool compact;
 
   IconData get _icon => switch (failure) {
-    NetworkFailure() => Icons.wifi_off_rounded,
-    TimeoutFailure() => Icons.hourglass_bottom_rounded,
-    ServiceUnavailableFailure() => Icons.cloud_off_rounded,
-    _ => Icons.error_outline_rounded,
-  };
+        NetworkFailure() => Icons.wifi_off_rounded,
+        TimeoutFailure() => Icons.hourglass_bottom_rounded,
+        ServiceUnavailableFailure() => Icons.cloud_off_rounded,
+        _ => Icons.error_outline_rounded,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -102,14 +102,14 @@ class ErrorView extends StatelessWidget {
         const SizedBox(height: 6),
         SelectableText('Código de soporte: ${failure.requestId!.substring(0, 8)}', style: t.bodySmall),
       ],
+      if (kDebugMode && debugDetail(failure) != null) ...[
+        const SizedBox(height: 6),
+        SelectableText(debugDetail(failure)!, textAlign: TextAlign.center, style: t.bodySmall?.copyWith(fontFamily: 'monospace')),
+      ],
       if (onRetry != null && (failure.isTransient || failure is UnknownFailure)) ...[
         SizedBox(height: compact ? 8 : 16),
-        OutlinedButton.icon(
-          onPressed: onRetry,
-          icon: const Icon(Icons.refresh),
-          label: const Text('Reintentar'),
-          style: OutlinedButton.styleFrom(minimumSize: const Size(140, 44)),
-        ),
+        OutlinedButton.icon(onPressed: onRetry, icon: const Icon(Icons.refresh), label: const Text('Reintentar'),
+            style: OutlinedButton.styleFrom(minimumSize: const Size(140, 44))),
       ],
     ];
     return Padding(
@@ -137,19 +137,13 @@ class StaleNotice extends StatelessWidget {
           color: KColors.warning.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(KRadius.chip),
         ),
-        child: Row(
-          children: [
-            const Icon(Icons.history_rounded, size: 18, color: KColors.warning),
-            const SizedBox(width: 8),
-            Expanded(child: Text('Mostrando datos guardados$when', style: Theme.of(context).textTheme.bodySmall)),
-            if (onRetry != null)
-              TextButton(
-                onPressed: onRetry,
-                style: TextButton.styleFrom(minimumSize: const Size(48, 40)),
-                child: const Text('Actualizar'),
-              ),
-          ],
-        ),
+        child: Row(children: [
+          const Icon(Icons.history_rounded, size: 18, color: KColors.warning),
+          const SizedBox(width: 8),
+          Expanded(child: Text('Mostrando datos guardados$when', style: Theme.of(context).textTheme.bodySmall)),
+          if (onRetry != null)
+            TextButton(onPressed: onRetry, style: TextButton.styleFrom(minimumSize: const Size(48, 40)), child: const Text('Actualizar')),
+        ]),
       ),
     );
   }
@@ -161,14 +155,12 @@ class SectionTitle extends StatelessWidget {
   final Widget? trailing;
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: KSpace.sm),
-    child: Row(
-      children: [
-        Expanded(child: Semantics(header: true, child: Text(text, style: Theme.of(context).textTheme.titleMedium))),
-        if (trailing != null) trailing!,
-      ],
-    ),
-  );
+        padding: const EdgeInsets.only(bottom: KSpace.sm),
+        child: Row(children: [
+          Expanded(child: Semantics(header: true, child: Text(text, style: Theme.of(context).textTheme.titleMedium))),
+          if (trailing != null) trailing!,
+        ]),
+      );
 }
 
 class LoadingButton extends StatelessWidget {
@@ -178,27 +170,16 @@ class LoadingButton extends StatelessWidget {
   final bool loading;
   @override
   Widget build(BuildContext context) => FilledButton(
-    onPressed: loading ? null : onPressed,
-    child:
-        loading
-            ? Semantics(
-              label: 'Procesando',
-              child: const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5)),
-            )
+        onPressed: loading ? null : onPressed,
+        child: loading
+            ? Semantics(label: 'Procesando', child: const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5)))
             : Text(label),
-  );
+      );
 }
 
 /// Tarjeta base con borde sutil (evita depender de CardTheme, cuyo tipo cambió entre versiones de Flutter).
 class KCard extends StatelessWidget {
-  const KCard({
-    super.key,
-    required this.child,
-    this.onTap,
-    this.padding = const EdgeInsets.all(KSpace.md),
-    this.color,
-    this.radius = KRadius.card,
-  });
+  const KCard({super.key, required this.child, this.onTap, this.padding = const EdgeInsets.all(KSpace.md), this.color, this.radius = KRadius.card});
   final Widget child;
   final VoidCallback? onTap;
   final EdgeInsetsGeometry padding;
@@ -210,7 +191,7 @@ class KCard extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(radius),
-      side: BorderSide(color: dark ? const Color(0xFF2C3743) : KColors.line),
+      side: BorderSide(color: dark ? KColors.darkLine : KColors.line),
     );
     return Material(
       color: color ?? Theme.of(context).colorScheme.surface,
@@ -221,20 +202,10 @@ class KCard extends StatelessWidget {
   }
 }
 
-InputDecoration kInput(
-  BuildContext context, {
-  required String label,
-  String? hint,
-  String? error,
-  Widget? prefix,
-  Widget? suffix,
-  String? helper,
-}) {
+InputDecoration kInput(BuildContext context, {required String label, String? hint, String? error, Widget? prefix, Widget? suffix, String? helper}) {
   final dark = Theme.of(context).brightness == Brightness.dark;
-  final border = OutlineInputBorder(
-    borderRadius: BorderRadius.circular(12),
-    borderSide: BorderSide(color: dark ? const Color(0xFF2C3743) : KColors.line),
-  );
+  final border = OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: dark ? KColors.darkLine : KColors.line));
+  final focused = OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: KBrand.of(context).action, width: 2));
   return InputDecoration(
     labelText: label,
     hintText: hint,
@@ -243,9 +214,10 @@ InputDecoration kInput(
     prefixIcon: prefix,
     suffixIcon: suffix,
     filled: true,
-    fillColor: dark ? const Color(0xFF1B222A) : Colors.white,
+    fillColor: dark ? KColors.darkSurface : Colors.white,
     border: border,
     enabledBorder: border,
+    focusedBorder: focused,
   );
 }
 
@@ -255,36 +227,49 @@ class KintiLogo extends StatelessWidget {
   final double size;
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Semantics(
       label: 'Kinti',
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: size,
-            height: size,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: scheme.primary, borderRadius: BorderRadius.circular(size * 0.32)),
-            child: Text(
-              'k',
-              style: TextStyle(color: scheme.onPrimary, fontWeight: FontWeight.w900, fontSize: size * 0.62, height: 1),
-            ),
-          ),
-          SizedBox(width: size * 0.25),
-          ExcludeSemantics(
-            child: Text(
-              'kinti',
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: size * 0.75,
-                color: scheme.primary,
-                letterSpacing: -0.5,
-              ),
-            ),
-          ),
-        ],
-      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Container(
+          width: size,
+          height: size,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: KColors.brandOrange, borderRadius: BorderRadius.circular(size * 0.32)),
+          child: Text('k', style: TextStyle(color: KColors.ink, fontWeight: FontWeight.w900, fontSize: size * 0.62, height: 1)),
+        ),
+        SizedBox(width: size * 0.25),
+        ExcludeSemantics(
+          child: Text('kinti', style: TextStyle(fontWeight: FontWeight.w800, fontSize: size * 0.75, color: KBrand.of(context).action, letterSpacing: -0.5)),
+        ),
+      ]),
     );
   }
 }
+
+/// Texto de error para formularios: mensaje + (solo en debug) causa técnica.
+class FailureText extends StatelessWidget {
+  const FailureText(this.failure, {super.key});
+  final AppFailure failure;
+  @override
+  Widget build(BuildContext context) {
+    final style = TextStyle(color: Theme.of(context).colorScheme.error);
+    final detail = kDebugMode ? debugDetail(failure) : null;
+    return Semantics(
+      liveRegion: true,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(failure.message, style: style),
+        if (failure.requestId != null) Text('Código de soporte: ${failure.requestId!.substring(0, 8)}', style: Theme.of(context).textTheme.bodySmall),
+        if (detail != null) SelectableText(detail, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontFamily: 'monospace')),
+      ]),
+    );
+  }
+}
+
+/// Causa técnica legible para depurar (nunca se muestra en release).
+String? debugDetail(AppFailure f) => switch (f) {
+      NetworkFailure(:final detail) => '[debug] ${f.runtimeType}: ${detail ?? 'sin detalle'}',
+      UnknownFailure() => '[debug] ${f.message}',
+      ServerFailure(:final code) || ServiceUnavailableFailure(:final code) => '[debug] ${f.runtimeType} $code',
+      BusinessFailure(:final code) => '[debug] $code',
+      _ => null,
+    };

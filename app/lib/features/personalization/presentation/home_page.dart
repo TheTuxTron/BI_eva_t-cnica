@@ -43,11 +43,7 @@ class HomePage extends StatelessWidget {
           ),
           IconButton(
             tooltip: unread > 0 ? '$unread notificaciones sin leer' : 'Notificaciones',
-            icon: Badge(
-              isLabelVisible: unread > 0,
-              label: Text('$unread'),
-              child: const Icon(Icons.notifications_outlined),
-            ),
+            icon: Badge(isLabelVisible: unread > 0, label: Text('$unread'), child: const Icon(Icons.notifications_outlined)),
             onPressed: () => context.go('/notifications'),
           ),
         ],
@@ -63,17 +59,12 @@ class HomePage extends StatelessWidget {
               children: [
                 if (screen?.isFallback ?? false) ...[
                   KCard(
-                    child: Row(
-                      children: [
-                        const Icon(Icons.info_outline),
-                        const SizedBox(width: 12),
-                        const Expanded(child: Text('Estamos mostrando una versión simplificada de tu inicio.')),
-                        TextButton(
-                          onPressed: () => context.read<HomeExperienceCubit>().load(),
-                          child: const Text('Reintentar'),
-                        ),
-                      ],
-                    ),
+                    child: Row(children: [
+                      const Icon(Icons.info_outline),
+                      const SizedBox(width: 12),
+                      const Expanded(child: Text('Estamos mostrando una versión simplificada de tu inicio.')),
+                      TextButton(onPressed: () => context.read<HomeExperienceCubit>().load(), child: const Text('Reintentar')),
+                    ]),
                   ),
                   const SizedBox(height: KSpace.md),
                 ] else if (r.isStale) ...[
@@ -93,12 +84,12 @@ class HomePage extends StatelessWidget {
   }
 
   List<Widget> _skeleton() => const [
-    Skeleton(height: 28, width: 220),
-    SizedBox(height: KSpace.md),
-    Skeleton(height: 140, radius: KRadius.hero),
-    SizedBox(height: KSpace.md),
-    Skeleton(height: 72, radius: KRadius.card),
-    SizedBox(height: KSpace.md),
-    Skeleton(height: 96, radius: KRadius.card),
-  ];
+        Skeleton(height: 28, width: 220),
+        SizedBox(height: KSpace.md),
+        Skeleton(height: 140, radius: KRadius.hero),
+        SizedBox(height: KSpace.md),
+        Skeleton(height: 72, radius: KRadius.card),
+        SizedBox(height: KSpace.md),
+        Skeleton(height: 96, radius: KRadius.card),
+      ];
 }

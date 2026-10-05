@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulador financiero · micro-app</title>
+<style>
+  :root { --bg:#FFFFFF; --ink:#24303D; --muted:#5E6B78; --line:#DDE3EA; --brand:#E46F0A; --soft:#F3F5F8; --ok:#2F8F6B; }
+  :root[data-theme="dark"] { --bg:#151B22; --ink:#E9EEF3; --muted:#A3AFBB; --line:#2C3743; --soft:#1E2630; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--ink); padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); }
+  h1 { font-size: 1.35rem; margin: 4px 0 2px; }
+  p.lead { color: var(--muted); margin: 0 0 16px; font-size: .95rem; }
+  .tabs { display:flex; gap:6px; background:var(--soft); padding:4px; border-radius:12px; margin-bottom:16px; }
+  .tabs button { flex:1; border:0; padding:10px 6px; border-radius:9px; background:transparent; color:var(--ink); font-weight:600; font-size:.9rem; min-height:44px; }
+  .tabs button[aria-selected="true"] { background:var(--bg); box-shadow:0 1px 2px rgba(0,0,0,.08); color:var(--brand); }
+  label { display:block; font-size:.85rem; color:var(--muted); margin:12px 0 6px; }
+  input[type=number] { width:100%; font-size:1.1rem; padding:12px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--ink); }
+  input[type=range] { width:100%; accent-color: var(--brand); }
+  .row { display:flex; justify-content:space-between; font-variant-numeric: tabular-nums; }
+  .result { margin-top:20px; border-top:1px solid var(--line); padding-top:16px; }
+  .big { font-size:2rem; font-weight:700; font-variant-numeric: tabular-nums; letter-spacing:-.5px; }
+  .muted { color:var(--muted); font-size:.85rem; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+  .grid div { background:var(--soft); border-radius:10px; padding:10px 12px; }
+  .grid b { display:block; font-variant-numeric: tabular-nums; }
+  button.primary { width:100%; margin-top:20px; min-height:48px; border:0; border-radius:12px; background:var(--brand); color:#fff; font-weight:700; font-size:1rem; }
+  button.ghost { width:100%; margin-top:8px; min-height:44px; border:1px solid var(--line); border-radius:12px; background:transparent; color:var(--ink); font-weight:600; }
+  .error { color:#C8443A; margin-top:12px; font-size:.9rem; }
+  .bar { height:6px; border-radius:3px; background:var(--soft); overflow:hidden; margin-top:10px; }
+  .bar span { display:block; height:100%; background:var(--brand); }
+  .badge { display:inline-block; font-size:.75rem; background:var(--soft); padding:3px 8px; border-radius:20px; color:var(--muted); }
+</style>
+</head>
+<body>
+  <span class="badge" id="who">Micro-app · Equipo Crédito Digital · v1.2.0</span>
+  <h1 id="title">Simulador financiero</h1>
+  <p class="lead" id="lead">Calcula en segundos con tasas según tu perfil.</p>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" data-mode="credito" aria-selected="true">Crédito</button>
+    <button role="tab" data-mode="inversion" aria-selected="false">Inversión</button>
+    <button role="tab" data-mode="ahorro" aria-selected="false">Ahorro</button>
+  </div>
+
+  <label for="amount" id="amountLabel">Monto a solicitar (USD)</label>
+  <input id="amount" type="number" inputmode="decimal" min="100" step="50" value="5000">
+  <label for="months"><span class="row"><span id="monthsLabel">Plazo</span><span id="monthsValue">24 meses</span></span></label>
+  <input id="months" type="range" min="3" max="60" step="1" value="24">
+
+  <div class="result" id="result" aria-live="polite"></div>
+  <div class="error" id="error" role="alert"></div>
+
+  <button class="primary" id="assistantBtn">Consultar con el asistente</button>
+  <button class="ghost" id="closeBtn">Volver a mi banca</button>
+
+<script>
+/* Contrato del bridge v1 (ver docs/microapps-contract.md)
+   micro-app → host: {v:1, type:'ready'|'navigate'|'track'|'close'|'session_expired', ...}
+   host → micro-app: window.kintiReceive({v:1, type:'session', token, apiBase, context}) */
+(function () {
+  const state = { mode: 'credito', token: null, apiBase: '', context: null, timer: null };
+  const $ = (id) => document.getElementById(id);
+  const fmt = (c) => '$' + (c / 100).toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const host = (msg) => {
+    const payload = JSON.stringify(Object.assign({ v: 1 }, msg));
+    if (window.KintiHost && window.KintiHost.postMessage) window.KintiHost.postMessage(payload);
+    else console.log('[host]', payload);
+  };
+
+  const COPY = {
+    credito: { amount: 'Monto a solicitar (USD)', months: 'Plazo', max: 60, value: 5000 },
+    inversion: { amount: 'Monto a invertir (USD)', months: 'Plazo de inversión', max: 36, value: 10000 },
+    ahorro: { amount: 'Ahorro mensual (USD)', months: 'Durante', max: 60, value: 100 },
+  };
+
+  function setMode(mode) {
+    state.mode = mode;
+    document.querySelectorAll('.tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === mode)));
+    $('amountLabel').textContent = COPY[mode].amount;
+    $('months').max = COPY[mode].max;
+    $('amount').value = COPY[mode].value;
+    host({ type: 'track', event: 'microapp_mode_' + mode });
+    schedule();
+  }
+
+  function schedule() {
+    $('monthsValue').textContent = $('months').value + ' meses';
+    clearTimeout(state.timer);
+    state.timer = setTimeout(simulate, 250);
+  }
+
+  async function simulate() {
+    $('error').textContent = '';
+    if (!state.token) { $('result').innerHTML = '<p class="muted">Esperando sesión segura de la app…</p>'; return; }
+    $('result').innerHTML = '<p class="muted">Calculando…</p>';
+    try {
+      const res = await fetch(state.apiBase + '/v1/microapp-api/simulador-credito/simulate', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: 'Bearer ' + state.token },
+        body: JSON.stringify({ mode: state.mode, amount: String($('amount').value || 0), months: Number($('months').value) }),
+      });
+      if (res.status === 401) { host({ type: 'session_expired' }); throw new Error('Tu sesión expiró'); }
+      const data = await res.json();
+      if (!res.ok) throw new Error((data.error && data.error.message) || 'No pudimos calcular');
+      render(data);
+    } catch (e) {
+      $('result').innerHTML = '';
+      $('error').textContent = e.message === 'Failed to fetch' ? 'Sin conexión. Intenta nuevamente.' : e.message;
+    }
+  }
+
+  function render(d) {
+    const rate = (d.annualRate * 100).toFixed(2) + '% anual';
+    if (d.mode === 'credito') {
+      const pct = Math.round((d.totalInterestCents / d.totalCents) * 100);
+      $('result').innerHTML = `<div class="muted">Cuota mensual estimada</div><div class="big">${fmt(d.paymentCents)}</div>
+        <div class="grid"><div><span class="muted">Tasa (${d.segment})</span><b>${rate}</b></div><div><span class="muted">Total intereses</span><b>${fmt(d.totalInterestCents)}</b></div>
+        <div><span class="muted">Total a pagar</span><b>${fmt(d.totalCents)}</b></div><div><span class="muted">Cuotas</span><b>${d.schedule.length}</b></div></div>
+        <div class="bar" aria-hidden="true"><span style="width:${100 - pct}%"></span></div><p class="muted">Capital ${100 - pct}% · intereses ${pct}%</p>`;
+    } else if (d.mode === 'ahorro') {
+      $('result').innerHTML = `<div class="muted">Tendrás al final</div><div class="big">${fmt(d.finalCents)}</div>
+        <div class="grid"><div><span class="muted">Aportas</span><b>${fmt(d.contributedCents)}</b></div><div><span class="muted">Intereses ganados</span><b>${fmt(d.interestCents)}</b></div></div>
+        <p class="muted">Tasa referencial ${rate}.</p>`;
+    } else {
+      $('result').innerHTML = `<div class="muted">Recibirás al vencimiento</div><div class="big">${fmt(d.finalCents)}</div>
+        <div class="grid"><div><span class="muted">Capital</span><b>${fmt(d.principalCents)}</b></div><div><span class="muted">Intereses</span><b>${fmt(d.interestCents)}</b></div></div>
+        <p class="muted">Tasa ${rate} (segmento ${d.segment}).</p>`;
+    }
+  }
+
+  // Punto de entrada que el host invoca con runJavaScript.
+  window.kintiReceive = function (msg) {
+    if (!msg || msg.v !== 1) return;
+    if (msg.type === 'session') {
+      state.token = msg.token; state.apiBase = msg.apiBase || ''; state.context = msg.context || {};
+      if (state.context.theme === 'dark' || (state.context.theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.dataset.theme = 'dark';
+      if (state.context.firstName) $('lead').textContent = state.context.firstName + ', calcula en segundos con tasas según tu perfil.';
+      simulate();
+    }
+  };
+
+  document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
+  $('amount').addEventListener('input', schedule);
+  $('months').addEventListener('input', schedule);
+  $('assistantBtn').addEventListener('click', () => host({ type: 'navigate', route: '/assistant' }));
+  $('closeBtn').addEventListener('click', () => host({ type: 'close' }));
+
+  const params = new URLSearchParams(location.search);
+  if (params.get('mode') && COPY[params.get('mode')]) setMode(params.get('mode')); else schedule();
+  // Modo desarrollo standalone: ?devToken=... permite probar la micro-app sin el host.
+  if (params.get('devToken')) window.kintiReceive({ v: 1, type: 'session', token: params.get('devToken'), apiBase: location.origin, context: {} });
+  host({ type: 'ready' });
+})();
+</script>
+</body>
+</html>

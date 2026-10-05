@@ -1,0 +1,180 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/cache/resource.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../design_system/tokens.dart';
+import '../../../design_system/widgets.dart';
+import '../../../sdui/sdui_models.dart';
+import '../data/accounts_repository.dart';
+import 'accounts_cubit.dart';
+
+const kCategories = <String, (String, IconData)>{
+  'alimentacion': ('Supermercado', Icons.shopping_basket_outlined),
+  'restaurantes': ('Restaurantes', Icons.restaurant_outlined),
+  'transporte': ('Transporte', Icons.directions_bus_outlined),
+  'servicios': ('Servicios', Icons.bolt_outlined),
+  'compras': ('Compras', Icons.shopping_bag_outlined),
+  'salud': ('Salud', Icons.local_pharmacy_outlined),
+  'entretenimiento': ('Entretenimiento', Icons.movie_outlined),
+  'ingresos': ('Ingresos', Icons.south_west_rounded),
+  'transferencias': ('Transferencias', Icons.swap_horiz_rounded),
+};
+
+(String, IconData) categoryOf(String c) => kCategories[c] ?? (c, Icons.receipt_outlined);
+
+/// Componente SDUI "account_summary": el elemento protagonista del inicio.
+class AccountSummaryComponent extends StatefulWidget {
+  const AccountSummaryComponent({super.key, required this.section});
+  final SduiSection section;
+  @override
+  State<AccountSummaryComponent> createState() => _AccountSummaryComponentState();
+}
+
+class _AccountSummaryComponentState extends State<AccountSummaryComponent> {
+  late bool _visible = widget.section.flag('balanceVisible', fallback: true);
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return BlocBuilder<AccountsCubit, Resource<AccountsSnapshot>>(
+      builder: (context, r) {
+        if (r.isFatal) {
+          return KCard(
+            child: ErrorView(failure: r.error!, compact: true, onRetry: () => context.read<AccountsCubit>().load()),
+          );
+        }
+        final snap = r.data;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(KSpace.lg),
+              decoration: BoxDecoration(color: scheme.primary, borderRadius: BorderRadius.circular(KRadius.hero)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Saldo disponible',
+                          style: TextStyle(color: scheme.onPrimary.withValues(alpha: 0.85)),
+                        ),
+                      ),
+                      IconButton(
+                        key: const Key('toggle_balance'),
+                        tooltip: _visible ? 'Ocultar saldos' : 'Mostrar saldos',
+                        color: scheme.onPrimary,
+                        icon: Icon(_visible ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                        onPressed: () => setState(() => _visible = !_visible),
+                      ),
+                    ],
+                  ),
+                  if (snap == null)
+                    const Skeleton(height: 40, width: 200)
+                  else
+                    AmountText(
+                      snap.totalCents,
+                      hidden: !_visible,
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        color: scheme.onPrimary,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -1,
+                      ),
+                    ),
+                  if (snap != null && snap.items.length > 1)
+                    Text(
+                      '${snap.items.length} cuentas',
+                      style: TextStyle(color: scheme.onPrimary.withValues(alpha: 0.85)),
+                    ),
+                ],
+              ),
+            ),
+            if (r.isStale) ...[
+              const SizedBox(height: KSpace.sm),
+              StaleNotice(updatedAt: r.updatedAt, onRetry: () => context.read<AccountsCubit>().load()),
+            ],
+            const SizedBox(height: KSpace.sm),
+            if (snap == null)
+              const Skeleton(height: 64, radius: KRadius.card)
+            else
+              for (final a in snap.items) ...[
+                AccountTile(account: a, hidden: !_visible),
+                const SizedBox(height: KSpace.sm),
+              ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class AccountTile extends StatelessWidget {
+  const AccountTile({super.key, required this.account, this.hidden = false, this.category});
+  final Account account;
+  final bool hidden;
+  final String? category;
+  @override
+  Widget build(BuildContext context) => KCard(
+    onTap:
+        () => context.push(
+          Uri(
+            path: '/accounts/${account.id}',
+            queryParameters: category == null ? null : {'category': category},
+          ).toString(),
+        ),
+    child: Row(
+      children: [
+        CircleAvatar(
+          backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+          child: Icon(
+            account.type == 'checking' ? Icons.account_balance_rounded : Icons.savings_outlined,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(account.alias, style: Theme.of(context).textTheme.titleSmall),
+              Text('${account.typeLabel} ${account.maskedNumber}', style: Theme.of(context).textTheme.bodySmall),
+            ],
+          ),
+        ),
+        AmountText(account.balanceCents, hidden: hidden),
+        const Icon(Icons.chevron_right_rounded),
+      ],
+    ),
+  );
+}
+
+class MovementTile extends StatelessWidget {
+  const MovementTile({super.key, required this.movement});
+  final Movement movement;
+  @override
+  Widget build(BuildContext context) {
+    final (label, icon) = categoryOf(movement.category);
+    return MergeSemantics(
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: KSpace.md),
+        leading: CircleAvatar(
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: Icon(icon, size: 20),
+        ),
+        title: Text(movement.description, maxLines: 1, overflow: TextOverflow.ellipsis),
+        subtitle: Text('$label · ${Dates.short(movement.createdAt)}'),
+        trailing: AmountText(
+          movement.amountCents,
+          signed: true,
+          colored: movement.amountCents > 0,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+      ),
+    );
+  }
+}
+
+String moneyLabel(int cents) => Money.format(cents);

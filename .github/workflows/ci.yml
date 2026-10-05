@@ -1,0 +1,88 @@
+name: CI
+
+# Trunk Based Development: cada push a main y cada rama corta (PR) se valida completa.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  commits:
+    name: Convención de commits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Validar mensajes (Conventional Commits)
+        run: |
+          base=${{ github.event.pull_request.base.sha || github.event.before }}
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then base=$(git rev-list --max-parents=0 HEAD); fi
+          git log --format=%s "$base"..HEAD | while read -r msg; do
+            ./tool/hooks/check_commit_msg.sh "$msg"
+          done
+
+  bff:
+    name: BFF · tests
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: bff } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: bff/package-lock.json }
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+
+  app:
+    name: App · analyze + unit/widget tests
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: app } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib test integration_test
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test --coverage
+      - uses: actions/upload-artifact@v4
+        with: { name: coverage, path: app/coverage/lcov.info }
+
+  e2e:
+    name: App · E2E en emulador contra BFF real
+    needs: [bff, app]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Levantar BFF
+        working-directory: bff
+        run: |
+          npm ci --no-audit --no-fund
+          PUBLIC_BASE_URL=http://10.0.2.2:8080 nohup npm start > bff.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf localhost:8080/health/ready && break; sleep 1; done
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - name: Habilitar KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Plataformas
+        working-directory: app
+        run: ./tool/setup_platforms.sh
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          working-directory: app
+          script: flutter test integration_test --dart-define=API_BASE_URL=http://10.0.2.2:8080
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: bff-log, path: bff/bff.log }

@@ -1,0 +1,33 @@
+name: Deploy BFF
+
+# Cada merge a main publica una imagen inmutable (etiquetada con el SHA) en GHCR.
+# Render (render.yaml) despliega desde main con health check y rollback a la imagen anterior.
+on:
+  push:
+    branches: [main]
+    paths: ['bff/**']
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: bff
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/kinti-bff:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/kinti-bff:main
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

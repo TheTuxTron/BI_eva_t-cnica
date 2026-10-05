@@ -1,0 +1,23 @@
+# Despliegue del BFF en Render (plan free) para que evaluadores puedan probar la app contra un servicio real.
+services:
+  - type: web
+    name: kinti-bff
+    runtime: docker
+    rootDir: bff
+    plan: free
+    healthCheckPath: /health/ready
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_KEY
+        generateValue: true
+      - key: EXPOSE_OTP
+        value: "true"
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false

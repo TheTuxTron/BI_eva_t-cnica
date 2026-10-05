@@ -38,8 +38,8 @@ flowchart LR
 
 | Capa | Fuente | Qué mide |
 |---|---|---|
-| App · estabilidad | Sentry | Crashes, errores no controlados con `requestId`, breadcrumbs HTTP, ANR |
-| App · rendimiento | Sentry performance + métricas de telemetría | Arranque en frío (`cold_start_restore_ms`), latencia HTTP por ruta, `microapp_ready_ms` |
+| App · estabilidad | Destino de crashes (Sentry/Crashlytics, enchufable vía `Telemetry`) | Crashes, errores no controlados con `requestId`, breadcrumbs HTTP, ANR |
+| App · rendimiento | Métricas de telemetría (+ APM del proveedor elegido) | Arranque en frío (`cold_start_restore_ms`), latencia HTTP por ruta, `microapp_ready_ms` |
 | App · experiencia | Eventos de telemetría | Embudo de onboarding (`onboarding_started` → `_registered` → `_completed`), `login_failed`, `transfer_success/failed` con intentos, `home_fallback_rendered`, `sdui_unknown_component`, `slow_request`, `deeplink_open` bloqueado |
 | BFF | Prometheus `/metrics` | `http_request_duration_seconds{route,status}`, `auth_logins_total{result}`, `transfers_total`, `upstream_calls_total{dependency,result}`, `client_events_total` |
 | BFF · salud | `/health/ready` | DB y estado del circuit breaker de FX |
@@ -52,7 +52,7 @@ flowchart LR
 | Disponibilidad de API de cuentas | 99,9 % mensual | 1 − (5xx / total) en `/v1/accounts*` |
 | Latencia p95 de lectura | < 800 ms | histograma por ruta |
 | Éxito de transferencias (excluye errores de negocio) | 99,5 % | `transfers_total{result="ok"}` vs fallas 5xx |
-| Crash-free sessions | ≥ 99,8 % | Sentry |
+| Crash-free sessions | ≥ 99,8 % | Proveedor de crashes |
 | Onboarding completado / iniciado | baseline + alerta ante caída > 20 % | eventos de embudo |
 
 ### 3.3 Alertas
@@ -63,7 +63,7 @@ flowchart LR
 ### 3.4 Cómo se detecta y diagnostica un problema de experiencia
 
 1. La alerta o el dashboard muestran, por ejemplo, un aumento de `transfer_failed{type=TimeoutFailure}` en Android 10.
-2. En Sentry se filtran los breadcrumbs `http` de esas sesiones y se obtienen los `requestId`.
+2. En el proveedor de crashes se filtran los breadcrumbs `http` de esas sesiones y se obtienen los `requestId`.
 3. Con el `requestId` se busca en los logs del BFF: ruta, status y latencia de esa request concreta.
 4. Si el usuario reporta, la pantalla de error muestra el "Código de soporte" (primeros 8 caracteres del `requestId`), que soporte busca directamente.
 

@@ -5,8 +5,8 @@
 1. **(0:00) Contexto, 30 s.** Qué es Kinti y la arquitectura en una frase: app Flutter + BFF; muestra el diagrama de contenedores de `docs/architecture.md`.
 2. **(0:30) Onboarding, 1 min.** Abrir cuenta: validación de cédula en vivo (prueba primero una inválida), mayor de edad, reglas de contraseña, OTP en modo demo, y llegada al inicio con el bono de $10 y la notificación de bienvenida.
 3. **(1:30) Personalización, 2 min.**
-   - Cierra sesión y entra como **Ana** (joven): tema violeta, "Meta de ahorro" y su insight de gastos.
-   - Cierra sesión y entra como **Carlos** (premium): tema azul y dorado, "Invertir" primero y tipo de cambio arriba.
+   - Cierra sesión y entra como **Ana** (joven): saldo en degradé naranja, "Meta de ahorro" y su insight de gastos.
+   - Cierra sesión y entra como **Carlos** (premium): tema café de marca con acento naranja, "Invertir" primero y tipo de cambio arriba.
    - Perfil → "¿Por qué veo este inicio?".
    - Oculta "Tipo de cambio" y vuelve al inicio: desapareció.
    - **Sin publicar la app:** ejecuta `make campaign` y haz pull-to-refresh con Ana: aparece el banner nuevo.

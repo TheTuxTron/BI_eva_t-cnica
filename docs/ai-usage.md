@@ -54,3 +54,13 @@ Estos ocurrieron de verdad durante el desarrollo y son la razón por la que la r
 - La IA propone y una persona aprueba: ningún cambio entra sin revisión ni pruebas.
 - No compartir datos de clientes reales ni secretos con herramientas externas; usar datos semilla.
 - Documentar en el PR cuándo hubo asistencia de IA relevante.
+
+### Errores encontrados al compilar y probar en emulador (integración)
+
+| Síntoma | Causa | Corrección | Commit sugerido |
+|---|---|---|---|
+| `flutter analyze`: switch no exhaustivo en `failures.dart` | Dio reciente agregó `DioExceptionType.transformTimeout` | Rama `default` que cubre tipos futuros | `fix(core): compatibilidad con DioExceptionType de Dio reciente` |
+| Avisos `use_build_context_synchronously` y `unawaited_futures` | Uso de `context` en un callback de stream y Futures de WebView sin esperar | Verificación `mounted` y `await` de la configuración de la WebView | `fix(app): context seguro y configuración de WebView` |
+| Build Android falla en `:sentry_flutter:compileDebugKotlin` | Plugin con Kotlin 1.6; el toolchain exige 2.0+ | Se retiró Sentry y se mantuvo la fachada `Telemetry` (ADR-009) | `fix(build): retirar sentry_flutter incompatible con Kotlin 2` |
+| Simulador: error de conexión en la WebView | El BFF devolvía `http://localhost:8080/...`; en el emulador `localhost` es el propio dispositivo | El BFF deduce la URL del `Host` de la petición, más una salvaguarda en la app. Prueba de regresión | `fix(microapps): URL alcanzable desde emulador y dispositivo` |
+| Usuarios creados desaparecían al reiniciar el BFF | Base en memoria + `npm run dev` reinicia al editar | SQLite en archivo por defecto. Un token de usuario inexistente responde 401 en vez de 500 | `fix(bff): persistencia local y sesión inválida → 401` |

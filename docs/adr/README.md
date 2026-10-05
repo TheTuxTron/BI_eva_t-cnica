@@ -12,5 +12,5 @@ Cada ADR documenta: problema, alternativas evaluadas, opción seleccionada, trad
 | [006](0006-offline-swr.md) | Stale-while-revalidate con caché local por usuario | Aceptada |
 | [007](0007-resiliencia-red.md) | Reintentos selectivos, idempotencia y circuit breaker | Aceptada |
 | [008](0008-notificaciones.md) | Push híbrido: FCM + bandeja persistente | Aceptada |
-| [009](0009-observabilidad.md) | Fachada de telemetría + Sentry + Prometheus + correlación | Aceptada |
+| [009](0009-observabilidad.md) | Fachada de telemetría + Prometheus + correlación (crashes enchufable) | Aceptada |
 | [010](0010-trunk-based.md) | Trunk Based Development con feature flags | Aceptada |

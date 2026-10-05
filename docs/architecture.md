@@ -15,7 +15,7 @@ flowchart LR
   fcm[(Firebase Cloud<br/>Messaging)]
   fx[(Frankfurter / BCE<br/>tipo de cambio)]
   llm[(LLM opcional<br/>asistente)]
-  sentry[(Sentry)]
+  sentry[(Crashes / APM<br/>enchufable)]
   prom[(Prometheus /<br/>Grafana)]
   core[(Core bancario<br/>— simulado con SQLite)]
 
@@ -209,7 +209,7 @@ flowchart LR
 - **Tokens:** access JWT de 15 min y refresh opaco rotativo con detección de reúso por familia. Se guardan en Keystore/Keychain (`flutter_secure_storage`), nunca en preferencias.
 - **Contraseñas:** scrypt con sal. Login con rate limit y el mismo mensaje para "usuario no existe" y "contraseña incorrecta".
 - **Mínimo privilegio para terceros:** token de micro-app con audiencia y scope propios, entregado por el bridge y no por URL. Mensajes validados y navegación restringida al origen.
-- **Datos:** la caché local está aislada por usuario y se borra al cerrar sesión. Sentry con `sendDefaultPii=false`. Logs del BFF con redacción de `authorization`, contraseñas y tokens. El asistente LLM recibe solo agregados.
+- **Datos:** la caché local está aislada por usuario y se borra al cerrar sesión. El destino de crashes se configura sin PII por defecto. Logs del BFF con redacción de `authorization`, contraseñas y tokens. El asistente LLM recibe solo agregados.
 - **Validación:** zod en el BFF (fuente de verdad) más validación local para feedback inmediato (cédula módulo 10, mayoría de edad, políticas de contraseña).
 - **Red:** HTTP en claro solo en builds debug; release exige HTTPS. Pendiente para producción: certificate pinning y detección de root/jailbreak (R-06).
 

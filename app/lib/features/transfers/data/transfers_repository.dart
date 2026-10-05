@@ -2,19 +2,13 @@ import '../../../core/network/api_client.dart';
 import '../../../core/utils/formatters.dart';
 
 class TransferReceipt {
-  const TransferReceipt({
-    required this.id,
-    required this.amountCents,
-    required this.toMaskedNumber,
-    required this.createdAt,
-    this.replayed = false,
-  });
+  const TransferReceipt({required this.id, required this.amountCents, required this.toMaskedNumber, required this.createdAt, this.replayed = false});
   factory TransferReceipt.fromJson(Map<String, dynamic> j) => TransferReceipt(
-    id: j['id'] as String,
-    amountCents: (j['amountCents'] as num).toInt(),
-    toMaskedNumber: j['toMaskedNumber'] as String,
-    createdAt: DateTime.parse(j['createdAt'] as String),
-  );
+        id: j['id'] as String,
+        amountCents: (j['amountCents'] as num).toInt(),
+        toMaskedNumber: j['toMaskedNumber'] as String,
+        createdAt: DateTime.parse(j['createdAt'] as String),
+      );
   final String id;
   final int amountCents;
   final String toMaskedNumber;

@@ -57,36 +57,24 @@ class TransferState extends Equatable {
     AppFailure? failure,
     bool clearFailure = false,
     int? attempts,
-  }) => TransferState(
-    step: step ?? this.step,
-    fromAccountId: fromAccountId ?? this.fromAccountId,
-    toNumber: toNumber ?? this.toNumber,
-    recipient: clearRecipient ? null : (recipient ?? this.recipient),
-    lookingUp: lookingUp ?? this.lookingUp,
-    recipientError: clearRecipientError ? null : (recipientError ?? this.recipientError),
-    amountCents: amountCents ?? this.amountCents,
-    description: description ?? this.description,
-    idempotencyKey: clearKey ? null : (idempotencyKey ?? this.idempotencyKey),
-    receipt: receipt ?? this.receipt,
-    failure: clearFailure ? null : (failure ?? this.failure),
-    attempts: attempts ?? this.attempts,
-  );
+  }) =>
+      TransferState(
+        step: step ?? this.step,
+        fromAccountId: fromAccountId ?? this.fromAccountId,
+        toNumber: toNumber ?? this.toNumber,
+        recipient: clearRecipient ? null : (recipient ?? this.recipient),
+        lookingUp: lookingUp ?? this.lookingUp,
+        recipientError: clearRecipientError ? null : (recipientError ?? this.recipientError),
+        amountCents: amountCents ?? this.amountCents,
+        description: description ?? this.description,
+        idempotencyKey: clearKey ? null : (idempotencyKey ?? this.idempotencyKey),
+        receipt: receipt ?? this.receipt,
+        failure: clearFailure ? null : (failure ?? this.failure),
+        attempts: attempts ?? this.attempts,
+      );
 
   @override
-  List<Object?> get props => [
-    step,
-    fromAccountId,
-    toNumber,
-    recipient?.number,
-    lookingUp,
-    recipientError,
-    amountCents,
-    description,
-    idempotencyKey,
-    receipt?.id,
-    failure,
-    attempts,
-  ];
+  List<Object?> get props => [step, fromAccountId, toNumber, recipient?.number, lookingUp, recipientError, amountCents, description, idempotencyKey, receipt?.id, failure, attempts];
 }
 
 class TransferCubit extends Cubit<TransferState> {
@@ -96,11 +84,11 @@ class TransferCubit extends Cubit<TransferState> {
     required Telemetry telemetry,
     String? initialFrom,
     String Function()? keyFactory,
-  }) : _transfers = transfers,
-       _accounts = accounts,
-       _telemetry = telemetry,
-       _newKey = keyFactory ?? (() => const Uuid().v4()),
-       super(TransferState(fromAccountId: initialFrom));
+  })  : _transfers = transfers,
+        _accounts = accounts,
+        _telemetry = telemetry,
+        _newKey = keyFactory ?? (() => const Uuid().v4()),
+        super(TransferState(fromAccountId: initialFrom));
 
   final TransfersRepository _transfers;
   final AccountsRepository _accounts;
@@ -128,15 +116,13 @@ class TransferCubit extends Cubit<TransferState> {
       emit(state.copyWith(failure: const BusinessFailure('Saldo insuficiente', code: 'INSUFFICIENT_FUNDS')));
       return;
     }
-    emit(
-      state.copyWith(
-        step: TransferStep.confirm,
-        amountCents: amountCents,
-        description: description,
-        idempotencyKey: state.idempotencyKey ?? _newKey(),
-        clearFailure: true,
-      ),
-    );
+    emit(state.copyWith(
+      step: TransferStep.confirm,
+      amountCents: amountCents,
+      description: description,
+      idempotencyKey: state.idempotencyKey ?? _newKey(),
+      clearFailure: true,
+    ));
     _telemetry.event('transfer_review');
   }
 

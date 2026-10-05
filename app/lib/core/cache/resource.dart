@@ -23,20 +23,14 @@ class Resource<T> extends Equatable {
   bool get isStale => hasData && (fromCache || error != null);
   bool get isFatal => data == null && error != null && !isRefreshing;
 
-  Resource<T> copyWith({
-    T? data,
-    AppFailure? error,
-    bool clearError = false,
-    bool? isRefreshing,
-    DateTime? updatedAt,
-    bool? fromCache,
-  }) => Resource<T>(
-    data: data ?? this.data,
-    error: clearError ? null : (error ?? this.error),
-    isRefreshing: isRefreshing ?? this.isRefreshing,
-    updatedAt: updatedAt ?? this.updatedAt,
-    fromCache: fromCache ?? this.fromCache,
-  );
+  Resource<T> copyWith({T? data, AppFailure? error, bool clearError = false, bool? isRefreshing, DateTime? updatedAt, bool? fromCache}) =>
+      Resource<T>(
+        data: data ?? this.data,
+        error: clearError ? null : (error ?? this.error),
+        isRefreshing: isRefreshing ?? this.isRefreshing,
+        updatedAt: updatedAt ?? this.updatedAt,
+        fromCache: fromCache ?? this.fromCache,
+      );
 
   @override
   List<Object?> get props => [data, error, isRefreshing, updatedAt, fromCache];
@@ -66,11 +60,6 @@ Stream<Resource<T>> staleWhileRevalidate<T>({
     await cache.write(key, json);
     yield Resource<T>(data: fresh, updatedAt: DateTime.now());
   } catch (e) {
-    yield Resource<T>(
-      data: cachedData,
-      error: AppFailure.from(e),
-      updatedAt: cached?.storedAt,
-      fromCache: cachedData != null,
-    );
+    yield Resource<T>(data: cachedData, error: AppFailure.from(e), updatedAt: cached?.storedAt, fromCache: cachedData != null);
   }
 }

@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 /// Fachada de observabilidad. Las features dependen de esta interfaz, no del proveedor
-/// (Sentry, Firebase, Datadog…), así se puede cambiar de herramienta sin tocar features.
+/// (Sentry, Crashlytics, Datadog…), así se puede cambiar de herramienta sin tocar features.
 abstract class Telemetry {
   void event(String name, [Map<String, Object?> props = const {}]);
   void screen(String name);
@@ -22,9 +22,7 @@ class CompositeTelemetry implements Telemetry {
     for (final s in sinks) {
       try {
         f(s);
-      } catch (_) {
-        /* la telemetría nunca debe romper la app */
-      }
+      } catch (_) {/* la telemetría nunca debe romper la app */}
     }
   }
 
@@ -33,8 +31,7 @@ class CompositeTelemetry implements Telemetry {
   @override
   void screen(String name) => _each((t) => t.screen(name));
   @override
-  void metric(String name, double value, [Map<String, Object?> tags = const {}]) =>
-      _each((t) => t.metric(name, value, tags));
+  void metric(String name, double value, [Map<String, Object?> tags = const {}]) => _each((t) => t.metric(name, value, tags));
   @override
   void breadcrumb(String message, {String category = 'app'}) => _each((t) => t.breadcrumb(message, category: category));
   @override
@@ -65,8 +62,7 @@ class ConsoleTelemetry implements Telemetry {
   void metric(String name, double value, [Map<String, Object?> tags = const {}]) =>
       _log({'kind': 'metric', 'name': name, 'value': value, ...tags});
   @override
-  void breadcrumb(String message, {String category = 'app'}) =>
-      _log({'kind': 'breadcrumb', 'category': category, 'msg': message});
+  void breadcrumb(String message, {String category = 'app'}) => _log({'kind': 'breadcrumb', 'category': category, 'msg': message});
   @override
   void recordError(Object error, StackTrace? stack, {bool fatal = false, Map<String, Object?> context = const {}}) =>
       _log({'kind': 'error', 'fatal': fatal, 'error': error.toString(), ...context});

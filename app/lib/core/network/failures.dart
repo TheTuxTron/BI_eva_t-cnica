@@ -26,7 +26,7 @@ sealed class AppFailure implements Exception {
       case DioExceptionType.receiveTimeout:
         return TimeoutFailure(requestId: requestId);
       case DioExceptionType.connectionError:
-        return NetworkFailure(requestId: requestId);
+        return NetworkFailure(requestId: requestId, detail: e.message ?? e.error?.toString());
       case DioExceptionType.cancel:
         return const CancelledFailure();
       case DioExceptionType.badResponse:
@@ -37,7 +37,7 @@ sealed class AppFailure implements Exception {
         // Incluye `unknown` y tipos agregados en versiones nuevas de Dio (p. ej. transformTimeout).
         if (e.error is AppFailure) return e.error! as AppFailure;
         if (e.type.name.toLowerCase().contains('timeout')) return TimeoutFailure(requestId: requestId);
-        return NetworkFailure(requestId: requestId);
+        return NetworkFailure(requestId: requestId, detail: e.message ?? e.error?.toString());
     }
   }
 
@@ -66,15 +66,16 @@ sealed class AppFailure implements Exception {
 }
 
 class NetworkFailure extends AppFailure {
-  const NetworkFailure({super.requestId})
-    : super('No pudimos conectarnos. Revisa tu conexión.');
+  const NetworkFailure({String? requestId, this.detail}) : super('No pudimos conectarnos. Revisa tu conexión.', requestId: requestId);
+
+  /// Causa técnica (solo se muestra en builds de debug para diagnosticar).
+  final String? detail;
   @override
   bool get isTransient => true;
 }
 
 class TimeoutFailure extends AppFailure {
-  const TimeoutFailure({super.requestId})
-    : super('El servicio está tardando más de lo normal.');
+  const TimeoutFailure({String? requestId}) : super('El servicio está tardando más de lo normal.', requestId: requestId);
   @override
   bool get isTransient => true;
 }
@@ -105,7 +106,7 @@ class BusinessFailure extends AppFailure {
 }
 
 class SecurityFailure extends AppFailure {
-  const SecurityFailure({super.requestId}) : super('Conexión no segura bloqueada.');
+  const SecurityFailure({String? requestId}) : super('Conexión no segura bloqueada.', requestId: requestId);
 }
 
 class CancelledFailure extends AppFailure {

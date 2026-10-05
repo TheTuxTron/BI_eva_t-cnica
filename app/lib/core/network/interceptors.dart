@@ -62,10 +62,7 @@ class AuthInterceptor extends QueuedInterceptor {
     var fresh = current;
     if (sentWith == 'Bearer ${current.accessToken}') {
       try {
-        final res = await refreshDio.post<Map<String, dynamic>>(
-          '/v1/auth/refresh',
-          data: {'refreshToken': current.refreshToken},
-        );
+        final res = await refreshDio.post<Map<String, dynamic>>('/v1/auth/refresh', data: {'refreshToken': current.refreshToken});
         final data = res.data!;
         fresh = AuthTokens(accessToken: data['accessToken'] as String, refreshToken: data['refreshToken'] as String);
         await tokens.save(fresh);
@@ -77,14 +74,17 @@ class AuthInterceptor extends QueuedInterceptor {
         return handler.next(err);
       }
     }
-    try {
-      opts.headers['Authorization'] = 'Bearer ${fresh.accessToken}';
-      opts.extra['authRetried'] = true;
-      final retried = await refreshDio.fetch<dynamic>(opts);
-      handler.resolve(retried);
-    } on DioException catch (e) {
-      handler.next(e);
-    }
+     try {
+        // Copia de la petición: la original no se modifica (historial y telemetría siguen siendo fieles).
+        final retryOpts = opts.copyWith(
+          headers: {...opts.headers, 'Authorization': 'Bearer ${fresh.accessToken}'},
+          extra: {...opts.extra, 'authRetried': true},
+        );
+        final retried = await refreshDio.fetch<dynamic>(retryOpts);
+        handler.resolve(retried);
+      } on DioException catch (e) {
+        handler.next(e);
+      }
   }
 }
 
@@ -99,8 +99,8 @@ class RetryInterceptor extends Interceptor {
     Random? random,
     Future<void> Function(Duration)? sleep,
     this.telemetry,
-  }) : _random = random ?? Random(),
-       _sleep = sleep ?? Future<void>.delayed;
+  })  : _random = random ?? Random(),
+        _sleep = sleep ?? Future<void>.delayed;
 
   final Dio dio;
   final int maxRetries;
@@ -150,10 +150,7 @@ class RetryInterceptor extends Interceptor {
     if (attempt >= maxRetries || !shouldRetry(err)) return handler.next(err);
     final retryAfter = int.tryParse(err.response?.headers.value('retry-after') ?? '');
     final wait = delayFor(attempt, retryAfterSec: retryAfter);
-    telemetry?.breadcrumb(
-      'retry ${err.requestOptions.method} ${err.requestOptions.path} #${attempt + 1} in ${wait.inMilliseconds}ms',
-      category: 'http',
-    );
+    telemetry?.breadcrumb('retry ${err.requestOptions.method} ${err.requestOptions.path} #${attempt + 1} in ${wait.inMilliseconds}ms', category: 'http');
     await _sleep(wait);
     final opts = err.requestOptions..extra[attemptKey] = attempt + 1;
     try {
@@ -189,10 +186,7 @@ class TelemetryInterceptor extends Interceptor {
     final status = err.response?.statusCode;
     final transient = status == null || status >= 500 || status == 429;
     if (transient) health.onTransientFailure(rid);
-    telemetry.breadcrumb(
-      '${o.method} ${o.path} -> ${status ?? err.type.name} (${_elapsed(o)}ms) rid=$rid',
-      category: 'http',
-    );
+    telemetry.breadcrumb('${o.method} ${o.path} -> ${status ?? err.type.name} (${_elapsed(o)}ms) rid=$rid', category: 'http');
     if (status != null && status >= 500) {
       telemetry.recordError(err, err.stackTrace, context: {'path': o.path, 'status': status, 'requestId': rid});
     }

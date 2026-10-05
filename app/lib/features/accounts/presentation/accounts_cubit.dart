@@ -18,8 +18,8 @@ class AccountsCubit extends Cubit<Resource<AccountsSnapshot>> {
     _sub = _repo.watchAccounts().listen(
       emit,
       onDone: () {
-        if (!done.isCompleted) done.complete();
-      },
+      if (!done.isCompleted) done.complete();
+    },
     );
     return done.future;
   }

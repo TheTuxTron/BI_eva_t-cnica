@@ -20,12 +20,11 @@ class AccountsModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
-    GoRoute(
-      path: '/accounts/:id',
-      builder:
-          (_, s) => AccountDetailPage(accountId: s.pathParameters['id']!, category: s.uri.queryParameters['category']),
-    ),
-  ];
+        GoRoute(
+          path: '/accounts/:id',
+          builder: (_, s) => AccountDetailPage(accountId: s.pathParameters['id']!, category: s.uri.queryParameters['category']),
+        ),
+      ];
 
   @override
   void registerComponents(SduiRegistry registry) {

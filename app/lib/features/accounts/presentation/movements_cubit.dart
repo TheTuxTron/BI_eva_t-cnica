@@ -40,28 +40,20 @@ class MovementsState extends Equatable {
     bool clearLoadMoreFailure = false,
     bool? fromCache,
     DateTime? updatedAt,
-  }) => MovementsState(
-    items: items ?? this.items,
-    nextCursor: clearCursor ? null : (nextCursor ?? this.nextCursor),
-    initialLoading: initialLoading ?? this.initialLoading,
-    loadingMore: loadingMore ?? this.loadingMore,
-    failure: clearFailure ? null : (failure ?? this.failure),
-    loadMoreFailure: clearLoadMoreFailure ? null : (loadMoreFailure ?? this.loadMoreFailure),
-    fromCache: fromCache ?? this.fromCache,
-    updatedAt: updatedAt ?? this.updatedAt,
-  );
+  }) =>
+      MovementsState(
+        items: items ?? this.items,
+        nextCursor: clearCursor ? null : (nextCursor ?? this.nextCursor),
+        initialLoading: initialLoading ?? this.initialLoading,
+        loadingMore: loadingMore ?? this.loadingMore,
+        failure: clearFailure ? null : (failure ?? this.failure),
+        loadMoreFailure: clearLoadMoreFailure ? null : (loadMoreFailure ?? this.loadMoreFailure),
+        fromCache: fromCache ?? this.fromCache,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
 
   @override
-  List<Object?> get props => [
-    items,
-    nextCursor,
-    initialLoading,
-    loadingMore,
-    failure,
-    loadMoreFailure,
-    fromCache,
-    updatedAt,
-  ];
+  List<Object?> get props => [items, nextCursor, initialLoading, loadingMore, failure, loadMoreFailure, fromCache, updatedAt];
 }
 
 /// Historial paginado (cursor). La primera página sale de caché si no hay red;
@@ -77,25 +69,18 @@ class MovementsCubit extends Cubit<MovementsState> {
     await _sub?.cancel();
     final done = Completer<void>();
     emit(state.copyWith(initialLoading: true, clearFailure: true));
-    _sub = _repo
-        .watchFirstPage(accountId, category: category)
-        .listen(
-          (r) {
-            emit(
-              MovementsState(
-                items: r.data?.items ?? state.items,
-                nextCursor: r.data?.nextCursor,
-                initialLoading: r.isRefreshing && r.data == null,
-                failure: r.error,
-                fromCache: r.fromCache,
-                updatedAt: r.updatedAt,
-              ),
-            );
-          },
-          onDone: () {
-            if (!done.isCompleted) done.complete();
-          },
-        );
+    _sub = _repo.watchFirstPage(accountId, category: category).listen((r) {
+      emit(MovementsState(
+        items: r.data?.items ?? state.items,
+        nextCursor: r.data?.nextCursor,
+        initialLoading: r.isRefreshing && r.data == null,
+        failure: r.error,
+        fromCache: r.fromCache,
+        updatedAt: r.updatedAt,
+      ));
+    }, onDone: () {
+      if (!done.isCompleted) done.complete();
+    });
     return done.future;
   }
 
@@ -105,14 +90,7 @@ class MovementsCubit extends Cubit<MovementsState> {
     emit(state.copyWith(loadingMore: true, clearLoadMoreFailure: true));
     try {
       final page = await _repo.nextPage(accountId, cursor, category: category);
-      emit(
-        state.copyWith(
-          items: [...state.items, ...page.items],
-          nextCursor: page.nextCursor,
-          clearCursor: page.nextCursor == null,
-          loadingMore: false,
-        ),
-      );
+      emit(state.copyWith(items: [...state.items, ...page.items], nextCursor: page.nextCursor, clearCursor: page.nextCursor == null, loadingMore: false));
     } on AppFailure catch (f) {
       emit(state.copyWith(loadingMore: false, loadMoreFailure: f));
     }

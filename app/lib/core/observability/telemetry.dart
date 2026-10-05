@@ -74,8 +74,6 @@ class ConsoleTelemetry implements Telemetry {
   void setUser(String? userId) => _log({'kind': 'user', 'id': userId});
 }
 
-/// Envía eventos de comportamiento en lotes al BFF: alimentan la personalización
-/// (p. ej. reordenar acciones) y las métricas de UX del lado servidor.
 class BehaviorEventsTelemetry implements Telemetry {
   BehaviorEventsTelemetry(this._send, {this.flushEvery = const Duration(seconds: 10)});
   final Future<void> Function(List<Map<String, Object?>> events) _send;
@@ -120,5 +118,12 @@ class BehaviorEventsTelemetry implements Telemetry {
   @override
   void recordError(Object error, StackTrace? stack, {bool fatal = false, Map<String, Object?> context = const {}}) {}
   @override
-  void setUser(String? userId) => enabled = userId != null;
+  void setUser(String? userId) {
+    enabled = userId != null;
+    if (!enabled) {
+      _timer?.cancel();
+      _timer = null;
+      _buffer.clear();
+    }
+  }
 }

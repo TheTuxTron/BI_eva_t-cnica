@@ -96,9 +96,7 @@ class _FormViewState extends State<_FormView> {
 
     return Form(
       key: _form,
-      child: ListView(
-        padding: const EdgeInsets.all(KSpace.lg),
-        children: [
+      child: SingleChildScrollView(padding: const EdgeInsets.all(KSpace.lg), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Text('Desde', style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: KSpace.sm),
           if (accounts.isEmpty)
@@ -212,7 +210,7 @@ class _FormViewState extends State<_FormView> {
             child: const Text('Continuar'),
           ),
         ],
-      ),
+      )),
     );
   }
 }

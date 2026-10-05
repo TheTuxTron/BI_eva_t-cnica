@@ -19,25 +19,36 @@ class AccountsPage extends StatelessWidget {
       body: BlocBuilder<AccountsCubit, Resource<AccountsSnapshot>>(
         builder: (context, r) {
           if (r.isInitialLoading) {
-            return ListView(padding: const EdgeInsets.all(KSpace.md), children: const [
-              Skeleton(height: 72, radius: KRadius.card),
-              SizedBox(height: KSpace.sm),
-              Skeleton(height: 72, radius: KRadius.card),
-            ]);
+            return ListView(
+              padding: const EdgeInsets.all(KSpace.md),
+              children: const [
+                Skeleton(height: 72, radius: KRadius.card),
+                SizedBox(height: KSpace.sm),
+                Skeleton(height: 72, radius: KRadius.card),
+              ],
+            );
           }
-          if (r.isFatal) return Center(child: ErrorView(failure: r.error!, onRetry: () => context.read<AccountsCubit>().load()));
+          if (r.isFatal) {
+            return Center(child: ErrorView(failure: r.error!, onRetry: () => context.read<AccountsCubit>().load()));
+          }
           final items = r.data!.items;
           return RefreshIndicator(
             onRefresh: () => context.read<AccountsCubit>().load(),
-            child: ListView(padding: const EdgeInsets.all(KSpace.md), children: [
-              if (r.isStale) ...[StaleNotice(updatedAt: r.updatedAt), const SizedBox(height: KSpace.md)],
-              if (category != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: KSpace.md),
-                  child: Text('Elige una cuenta para ver tus gastos en ${categoryOf(category!).$1.toLowerCase()}'),
-                ),
-              for (final a in items) ...[AccountTile(account: a, category: category), const SizedBox(height: KSpace.sm)],
-            ]),
+            child: ListView(
+              padding: const EdgeInsets.all(KSpace.md),
+              children: [
+                if (r.isStale) ...[StaleNotice(updatedAt: r.updatedAt), const SizedBox(height: KSpace.md)],
+                if (category != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: KSpace.md),
+                    child: Text('Elige una cuenta para ver tus gastos en ${categoryOf(category!).$1.toLowerCase()}'),
+                  ),
+                for (final a in items) ...[
+                  AccountTile(account: a, category: category),
+                  const SizedBox(height: KSpace.sm),
+                ],
+              ],
+            ),
           );
         },
       ),

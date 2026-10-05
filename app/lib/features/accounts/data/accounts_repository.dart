@@ -5,16 +5,24 @@ import '../../../core/cache/resource.dart';
 import '../../../core/network/api_client.dart';
 
 class Account extends Equatable {
-  const Account({required this.id, required this.type, required this.number, required this.maskedNumber, required this.alias, required this.balanceCents, this.currency = 'USD'});
+  const Account({
+    required this.id,
+    required this.type,
+    required this.number,
+    required this.maskedNumber,
+    required this.alias,
+    required this.balanceCents,
+    this.currency = 'USD',
+  });
   factory Account.fromJson(Map<String, dynamic> j) => Account(
-        id: j['id'] as String,
-        type: j['type'] as String,
-        number: j['number'] as String,
-        maskedNumber: j['maskedNumber'] as String,
-        alias: j['alias'] as String,
-        balanceCents: (j['balanceCents'] as num).toInt(),
-        currency: (j['currency'] as String?) ?? 'USD',
-      );
+    id: j['id'] as String,
+    type: j['type'] as String,
+    number: j['number'] as String,
+    maskedNumber: j['maskedNumber'] as String,
+    alias: j['alias'] as String,
+    balanceCents: (j['balanceCents'] as num).toInt(),
+    currency: (j['currency'] as String?) ?? 'USD',
+  );
   final String id, type, number, maskedNumber, alias, currency;
   final int balanceCents;
   String get typeLabel => type == 'checking' ? 'Corriente' : 'Ahorros';
@@ -38,15 +46,22 @@ class AccountsSnapshot extends Equatable {
 }
 
 class Movement extends Equatable {
-  const Movement({required this.id, required this.amountCents, required this.balanceAfterCents, required this.description, required this.category, required this.createdAt});
+  const Movement({
+    required this.id,
+    required this.amountCents,
+    required this.balanceAfterCents,
+    required this.description,
+    required this.category,
+    required this.createdAt,
+  });
   factory Movement.fromJson(Map<String, dynamic> j) => Movement(
-        id: j['id'] as String,
-        amountCents: (j['amountCents'] as num).toInt(),
-        balanceAfterCents: (j['balanceAfterCents'] as num).toInt(),
-        description: j['description'] as String,
-        category: j['category'] as String,
-        createdAt: DateTime.parse(j['createdAt'] as String),
-      );
+    id: j['id'] as String,
+    amountCents: (j['amountCents'] as num).toInt(),
+    balanceAfterCents: (j['balanceAfterCents'] as num).toInt(),
+    description: j['description'] as String,
+    category: j['category'] as String,
+    createdAt: DateTime.parse(j['createdAt'] as String),
+  );
   final String id, description, category;
   final int amountCents, balanceAfterCents;
   final DateTime createdAt;
@@ -78,22 +93,29 @@ class AccountsRepository {
   final CacheStore cache;
 
   Stream<Resource<AccountsSnapshot>> watchAccounts() => staleWhileRevalidate(
-        cache: cache,
-        key: 'accounts',
-        fetch: () => api.get<Json>('/v1/accounts'),
-        decode: AccountsSnapshot.fromJson,
-      );
+    cache: cache,
+    key: 'accounts',
+    fetch: () => api.get<Json>('/v1/accounts'),
+    decode: AccountsSnapshot.fromJson,
+  );
 
   /// Solo la primera página se cachea (lo que el usuario ve al abrir offline).
   Stream<Resource<MovementsPage>> watchFirstPage(String accountId, {String? category}) => staleWhileRevalidate(
-        cache: cache,
-        key: 'movements:$accountId:${category ?? 'all'}',
-        fetch: () => api.get<Json>('/v1/accounts/$accountId/movements', query: {'limit': 20, if (category != null) 'category': category}),
-        decode: MovementsPage.fromJson,
-      );
+    cache: cache,
+    key: 'movements:$accountId:${category ?? 'all'}',
+    fetch:
+        () => api.get<Json>(
+          '/v1/accounts/$accountId/movements',
+          query: {'limit': 20, if (category != null) 'category': category},
+        ),
+    decode: MovementsPage.fromJson,
+  );
 
   Future<MovementsPage> nextPage(String accountId, String cursor, {String? category}) async {
-    final j = await api.get<Json>('/v1/accounts/$accountId/movements', query: {'limit': 20, 'cursor': cursor, if (category != null) 'category': category});
+    final j = await api.get<Json>(
+      '/v1/accounts/$accountId/movements',
+      query: {'limit': 20, 'cursor': cursor, if (category != null) 'category': category},
+    );
     return MovementsPage.fromJson(j);
   }
 

@@ -56,16 +56,23 @@ class MicroappBridge {
         return const BridgeSessionExpired();
       case 'track':
         final e = msg['event'];
-        return e is String && RegExp(r'^microapp_[a-z0-9_]{2,40}$').hasMatch(e) ? BridgeTrack(e) : const BridgeRejected('evento inválido');
+        return e is String && RegExp(r'^microapp_[a-z0-9_]{2,40}$').hasMatch(e)
+            ? BridgeTrack(e)
+            : const BridgeRejected('evento inválido');
       case 'navigate':
         final r = msg['route'];
         // La micro-app solo puede navegar a rutas que el host le autorizó.
-        return r is String && allowedNavigation.contains(r) ? BridgeNavigate(r) : BridgeRejected('ruta no autorizada: $r');
+        return r is String && allowedNavigation.contains(r)
+            ? BridgeNavigate(r)
+            : BridgeRejected('ruta no autorizada: $r');
       default:
         return BridgeRejected('tipo desconocido: ${msg['type']}');
     }
   }
 
-  static String sessionMessage({required String token, required String apiBase, required Map<String, dynamic> context}) =>
-      jsonEncode({'v': version, 'type': 'session', 'token': token, 'apiBase': apiBase, 'context': context});
+  static String sessionMessage({
+    required String token,
+    required String apiBase,
+    required Map<String, dynamic> context,
+  }) => jsonEncode({'v': version, 'type': 'session', 'token': token, 'apiBase': apiBase, 'context': context});
 }

@@ -57,13 +57,16 @@ class _MicroappPageState extends State<MicroappPage> {
       ..start();
     try {
       final session = await sl<MicroappsRepository>().createSession(widget.appId);
-      final url = reachableUrl(Uri.parse(session.url), Uri.parse(sl<AppEnv>().apiBaseUrl))
-          .replace(queryParameters: widget.query.isEmpty ? null : widget.query);
+      final url = reachableUrl(
+        Uri.parse(session.url),
+        Uri.parse(sl<AppEnv>().apiBaseUrl),
+      ).replace(queryParameters: widget.query.isEmpty ? null : widget.query);
       final origin = url.origin;
       final controller = WebViewController();
       await controller.setJavaScriptMode(JavaScriptMode.unrestricted);
       await controller.addJavaScriptChannel('KintiHost', onMessageReceived: (m) => _onMessage(m.message));
-      await controller.setNavigationDelegate(NavigationDelegate(
+      await controller.setNavigationDelegate(
+        NavigationDelegate(
           onNavigationRequest: (req) {
             final allowed = Uri.parse(req.url).origin == origin;
             if (!allowed) _telemetry.event('microapp_navigation_blocked', {'url': req.url});
@@ -72,7 +75,8 @@ class _MicroappPageState extends State<MicroappPage> {
           onWebResourceError: (e) {
             if (e.isForMainFrame ?? true) _fail(const NetworkFailure());
           },
-        ));
+        ),
+      );
       _readyTimeout = Timer(const Duration(seconds: 12), () {
         if (!_ready) _fail(const TimeoutFailure());
       });
@@ -139,9 +143,10 @@ class _MicroappPageState extends State<MicroappPage> {
           child: (_ready || _failure != null) ? const SizedBox(height: 2) : const LinearProgressIndicator(minHeight: 2),
         ),
       ),
-      body: _failure != null
-          ? Center(child: ErrorView(failure: _failure!, onRetry: _start))
-          : _controller == null
+      body:
+          _failure != null
+              ? Center(child: ErrorView(failure: _failure!, onRetry: _start))
+              : _controller == null
               ? const Center(child: CircularProgressIndicator())
               : WebViewWidget(controller: _controller!),
     );

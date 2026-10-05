@@ -15,7 +15,12 @@ class MockAccounts extends Mock implements AccountsRepository {}
 void main() {
   late MockTransfers transfers;
   late MockAccounts accounts;
-  final receipt = TransferReceipt(id: 'trf_1', amountCents: 1250, toMaskedNumber: '****0011', createdAt: DateTime(2026, 10, 3));
+  final receipt = TransferReceipt(
+    id: 'trf_1',
+    amountCents: 1250,
+    toMaskedNumber: '****0011',
+    createdAt: DateTime(2026, 10, 3),
+  );
   const recipient = RecipientInfo(number: '2200990011', holder: 'María Y.', type: 'savings');
 
   setUp(() {
@@ -26,25 +31,27 @@ void main() {
 
   var keys = 0;
   TransferCubit build() => TransferCubit(
-        transfers: transfers,
-        accounts: accounts,
-        telemetry: FakeTelemetry(),
-        initialFrom: 'acc_1',
-        keyFactory: () => 'key-${++keys}',
-      );
+    transfers: transfers,
+    accounts: accounts,
+    telemetry: FakeTelemetry(),
+    initialFrom: 'acc_1',
+    keyFactory: () => 'key-${++keys}',
+  );
 
   Future<void> fillAndReview(TransferCubit c) async {
     await c.setDestination('2200990011');
     c.review(amountCents: 1250, description: 'Almuerzo', availableCents: 10000);
   }
 
-  When<Future<TransferReceipt>> stubTransfer() => when(() => transfers.transfer(
-        idempotencyKey: any(named: 'idempotencyKey'),
-        fromAccountId: any(named: 'fromAccountId'),
-        toAccountNumber: any(named: 'toAccountNumber'),
-        amountCents: any(named: 'amountCents'),
-        description: any(named: 'description'),
-      ));
+  When<Future<TransferReceipt>> stubTransfer() => when(
+    () => transfers.transfer(
+      idempotencyKey: any(named: 'idempotencyKey'),
+      fromAccountId: any(named: 'fromAccountId'),
+      toAccountNumber: any(named: 'toAccountNumber'),
+      amountCents: any(named: 'amountCents'),
+      description: any(named: 'description'),
+    ),
+  );
 
   test('verifica el destinatario y genera una clave de idempotencia al revisar', () async {
     final c = build();
@@ -76,13 +83,16 @@ void main() {
     await c.confirm();
     expect(c.state.step, TransferStep.success);
 
-    final captured = verify(() => transfers.transfer(
-          idempotencyKey: captureAny(named: 'idempotencyKey'),
-          fromAccountId: any(named: 'fromAccountId'),
-          toAccountNumber: any(named: 'toAccountNumber'),
-          amountCents: any(named: 'amountCents'),
-          description: any(named: 'description'),
-        )).captured;
+    final captured =
+        verify(
+          () => transfers.transfer(
+            idempotencyKey: captureAny(named: 'idempotencyKey'),
+            fromAccountId: any(named: 'fromAccountId'),
+            toAccountNumber: any(named: 'toAccountNumber'),
+            amountCents: any(named: 'amountCents'),
+            description: any(named: 'description'),
+          ),
+        ).captured;
     expect(captured, hasLength(2));
     expect(captured.toSet(), hasLength(1));
   });

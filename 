@@ -1,0 +1,19 @@
+[33m43a779e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m chore: archivos restantes
+[33m6b67ad5[m docs: arquitectura, ADRs, operación, resiliencia, design system y uso de IA
+[33m70917dc[m test(app): pruebas unitarias, de widgets y flujos E2E
+[33m7570362[m feat(app): composición por módulos, router con guards y arranque
+[33m4214667[m feat(diagnostics): panel para demostrar escenarios degradados
+[33me199cdc[m feat(ecosystem): micro-app con bridge, tipo de cambio, push y asistente
+[33mca0fd44[m feat(personalization): inicio por segmento y preferencias del cliente
+[33m232fc07[m feat(transfers): transferencias con idempotencia y estado incierto
+[33m4419bf3[m feat(accounts): saldos y movimientos paginados con caché offline
+[33m2b4f3df[m feat(auth): onboarding con cédula y OTP, login y sesión segura
+[33md5b1654[m feat(sdui): motor server-driven UI con fallback embebido
+[33mbcde723[m feat(design-system): paleta Banco Internacional y componentes accesibles
+[33m7321c3b[m feat(core): red con reintentos, refresh de sesión, caché SWR, conectividad y telemetría
+[33mde1926d[m chore(app): proyecto Flutter, dependencias y plataformas Android/iOS
+[33m96ef698[m test(bff): pruebas de auth, cuentas, personalización, resiliencia y regresiones
+[33m510ed06[m feat(microapps): simulador financiero como micro-app independiente
+[33mb0a4d20[m feat(bff): servidor, auth con onboarding, cuentas, transferencias idempotentes y SDUI
+[33m5a22477[m chore: estructura del monorepo, CI, hooks y Makefile
+[33ma824cbf[m[33m ([m[1;31morigin/main[m[33m)[m Initial commit

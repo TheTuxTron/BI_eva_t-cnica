@@ -66,7 +66,8 @@ sealed class AppFailure implements Exception {
 }
 
 class NetworkFailure extends AppFailure {
-  const NetworkFailure({String? requestId, this.detail}) : super('No pudimos conectarnos. Revisa tu conexión.', requestId: requestId);
+  const NetworkFailure({String? requestId, this.detail})
+    : super('No pudimos conectarnos. Revisa tu conexión.', requestId: requestId);
 
   /// Causa técnica (solo se muestra en builds de debug para diagnosticar).
   final String? detail;
@@ -75,7 +76,8 @@ class NetworkFailure extends AppFailure {
 }
 
 class TimeoutFailure extends AppFailure {
-  const TimeoutFailure({String? requestId}) : super('El servicio está tardando más de lo normal.', requestId: requestId);
+  const TimeoutFailure({String? requestId})
+    : super('El servicio está tardando más de lo normal.', requestId: requestId);
   @override
   bool get isTransient => true;
 }

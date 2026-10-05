@@ -7,15 +7,17 @@ class SduiSection extends Equatable {
   const SduiSection({required this.id, required this.type, this.data = const {}});
   final String id;
   final String type;
+
   /// Propiedades del componente (equivalente a `props` en el JSON).
   final Map<String, dynamic> data;
 
   String? str(String k) => data[k] is String ? data[k] as String : null;
   bool flag(String k, {bool fallback = false}) => data[k] is bool ? data[k] as bool : fallback;
   Map<String, dynamic>? map(String k) => data[k] is Map ? Map<String, dynamic>.from(data[k] as Map) : null;
-  List<Map<String, dynamic>> list(String k) => data[k] is List
-      ? (data[k] as List).whereType<Map<dynamic, dynamic>>().map(Map<String, dynamic>.from).toList()
-      : const [];
+  List<Map<String, dynamic>> list(String k) =>
+      data[k] is List
+          ? (data[k] as List).whereType<Map<dynamic, dynamic>>().map(Map<String, dynamic>.from).toList()
+          : const [];
 
   @override
   List<Object?> get props => [id, type, data];
@@ -51,11 +53,13 @@ class SduiScreen extends Equatable {
     final sections = <SduiSection>[];
     for (final raw in (json['sections'] as List?) ?? const []) {
       if (raw is Map && raw['type'] is String && raw['id'] is String) {
-        sections.add(SduiSection(
-          id: raw['id'] as String,
-          type: raw['type'] as String,
-          data: raw['props'] is Map ? Map<String, dynamic>.from(raw['props'] as Map) : const {},
-        ));
+        sections.add(
+          SduiSection(
+            id: raw['id'] as String,
+            type: raw['type'] as String,
+            data: raw['props'] is Map ? Map<String, dynamic>.from(raw['props'] as Map) : const {},
+          ),
+        );
       }
     }
     final meta = json['meta'] is Map ? json['meta'] as Map : const {};

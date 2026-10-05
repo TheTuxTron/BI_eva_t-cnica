@@ -6,8 +6,16 @@ const Map<String, dynamic> kFallbackHome = {
   'ttlSeconds': 60,
   'theme': {'segment': 'clasico', 'seedColor': '#FF8100', 'mode': 'system'},
   'sections': [
-    {'id': 'greeting', 'type': 'greeting', 'props': {'title': 'Hola', 'subtitle': 'Tus finanzas, claras y al día.'}},
-    {'id': 'accounts', 'type': 'account_summary', 'props': {'showTotal': true, 'balanceVisible': true}},
+    {
+      'id': 'greeting',
+      'type': 'greeting',
+      'props': {'title': 'Hola', 'subtitle': 'Tus finanzas, claras y al día.'},
+    },
+    {
+      'id': 'accounts',
+      'type': 'account_summary',
+      'props': {'showTotal': true, 'balanceVisible': true},
+    },
     {
       'id': 'quick_actions',
       'type': 'quick_actions',
@@ -19,5 +27,8 @@ const Map<String, dynamic> kFallbackHome = {
       },
     },
   ],
-  'meta': {'segment': 'clasico', 'reasons': ['Experiencia básica: personalización no disponible']},
+  'meta': {
+    'segment': 'clasico',
+    'reasons': ['Experiencia básica: personalización no disponible'],
+  },
 };

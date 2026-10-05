@@ -10,12 +10,12 @@ class AppEnv {
   });
 
   factory AppEnv.fromDefines() => const AppEnv(
-        apiBaseUrl: String.fromEnvironment('API_BASE_URL', defaultValue: 'http://10.0.2.2:8080'),
-        flavor: String.fromEnvironment('FLAVOR', defaultValue: 'dev'),
-        sentryDsn: String.fromEnvironment('SENTRY_DSN'),
-        adminKey: String.fromEnvironment('ADMIN_KEY', defaultValue: 'dev-admin-key'),
-        enableDevTools: bool.fromEnvironment('DEV_TOOLS', defaultValue: true),
-      );
+    apiBaseUrl: String.fromEnvironment('API_BASE_URL', defaultValue: 'http://10.0.2.2:8080'),
+    flavor: String.fromEnvironment('FLAVOR', defaultValue: 'dev'),
+    sentryDsn: String.fromEnvironment('SENTRY_DSN'),
+    adminKey: String.fromEnvironment('ADMIN_KEY', defaultValue: 'dev-admin-key'),
+    enableDevTools: bool.fromEnvironment('DEV_TOOLS', defaultValue: true),
+  );
 
   final String apiBaseUrl;
   final String flavor;

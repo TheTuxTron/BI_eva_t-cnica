@@ -49,7 +49,10 @@ class HybridPushService with WidgetsBindingObserver implements PushService {
   Stream<String> get opened => _opened.stream;
 
   @override
-  String get channelDescription => _fcm ? 'Push activas (Firebase Cloud Messaging)' : 'Avisos dentro de la app (push no configurado en este entorno)';
+  String get channelDescription =>
+      _fcm
+          ? 'Push activas (Firebase Cloud Messaging)'
+          : 'Avisos dentro de la app (push no configurado en este entorno)';
 
   @override
   Future<void> start() async {
@@ -122,17 +125,21 @@ class HybridPushService with WidgetsBindingObserver implements PushService {
       final platform = defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
       final serverFcm = await repo.registerDevice(token, platform);
       _subs.add(m.onTokenRefresh.listen((t) => repo.registerDevice(t, platform)));
-      _subs.add(FirebaseMessaging.onMessage.listen((msg) {
-        final n = msg.notification;
-        _foreground.add(AppNotification(
-          id: msg.data['notificationId']?.toString() ?? msg.messageId ?? '${DateTime.now().millisecondsSinceEpoch}',
-          title: n?.title ?? 'Kinti',
-          body: n?.body ?? '',
-          deeplink: (msg.data['deeplink'] as String?)?.isEmpty ?? true ? null : msg.data['deeplink'] as String,
-          createdAt: DateTime.now(),
-        ));
-        _lastSeen = DateTime.now().toUtc();
-      }));
+      _subs.add(
+        FirebaseMessaging.onMessage.listen((msg) {
+          final n = msg.notification;
+          _foreground.add(
+            AppNotification(
+              id: msg.data['notificationId']?.toString() ?? msg.messageId ?? '${DateTime.now().millisecondsSinceEpoch}',
+              title: n?.title ?? 'Kinti',
+              body: n?.body ?? '',
+              deeplink: (msg.data['deeplink'] as String?)?.isEmpty ?? true ? null : msg.data['deeplink'] as String,
+              createdAt: DateTime.now(),
+            ),
+          );
+          _lastSeen = DateTime.now().toUtc();
+        }),
+      );
       _subs.add(FirebaseMessaging.onMessageOpenedApp.listen(_handleOpened));
       final initial = await m.getInitialMessage();
       if (initial != null) _handleOpened(initial);

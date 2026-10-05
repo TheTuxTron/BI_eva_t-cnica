@@ -33,12 +33,18 @@ class AssistantState extends Equatable {
 
 class AssistantCubit extends Cubit<AssistantState> {
   AssistantCubit(this._repo, this._telemetry)
-      : super(const AssistantState(messages: [
-          ChatMessage.bot(AssistantReply(
-            text: 'Hola, soy tu asistente. Puedo contarte tu saldo, analizar tus gastos o ayudarte a planificar.',
-            suggestions: ['¿Cuál es mi saldo?', '¿En qué gasto más?', '¿Cómo puedo ahorrar más?'],
-          )),
-        ]));
+    : super(
+        const AssistantState(
+          messages: [
+            ChatMessage.bot(
+              AssistantReply(
+                text: 'Hola, soy tu asistente. Puedo contarte tu saldo, analizar tus gastos o ayudarte a planificar.',
+                suggestions: ['¿Cuál es mi saldo?', '¿En qué gasto más?', '¿Cómo puedo ahorrar más?'],
+              ),
+            ),
+          ],
+        ),
+      );
   final AssistantRepository _repo;
   final Telemetry _telemetry;
 
@@ -61,8 +67,10 @@ class AssistantCubit extends Cubit<AssistantState> {
 class AssistantPage extends StatelessWidget {
   const AssistantPage({super.key});
   @override
-  Widget build(BuildContext context) =>
-      BlocProvider(create: (_) => AssistantCubit(sl<AssistantRepository>(), sl<Telemetry>()), child: const _AssistantView());
+  Widget build(BuildContext context) => BlocProvider(
+    create: (_) => AssistantCubit(sl<AssistantRepository>(), sl<Telemetry>()),
+    child: const _AssistantView(),
+  );
 }
 
 class _AssistantView extends StatefulWidget {
@@ -94,84 +102,121 @@ class _AssistantViewState extends State<_AssistantView> {
     return Scaffold(
       appBar: AppBar(title: const Text('Asistente')),
       body: SafeArea(
-        child: Column(children: [
-          Expanded(
-            child: BlocConsumer<AssistantCubit, AssistantState>(
-              listener: (_, __) => WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (_scroll.hasClients) _scroll.animateTo(_scroll.position.maxScrollExtent, duration: KMotion.medium, curve: Curves.easeOut);
-              }),
-              builder: (context, s) => ListView.builder(
-                controller: _scroll,
-                padding: const EdgeInsets.all(KSpace.md),
-                itemCount: s.messages.length + (s.sending ? 1 : 0),
-                itemBuilder: (context, i) {
-                  if (i == s.messages.length) {
-                    return const Align(alignment: Alignment.centerLeft, child: Padding(padding: EdgeInsets.all(8), child: Text('Escribiendo…')));
-                  }
-                  final m = s.messages[i];
-                  if (m.fromUser) {
-                    return Align(
-                      alignment: Alignment.centerRight,
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                        Container(
-                          margin: const EdgeInsets.symmetric(vertical: 4),
-                          padding: const EdgeInsets.all(12),
-                          constraints: const BoxConstraints(maxWidth: 300),
-                          decoration: BoxDecoration(color: scheme.primary, borderRadius: BorderRadius.circular(16)),
-                          child: Text(m.text, style: TextStyle(color: scheme.onPrimary)),
-                        ),
-                        if (m.failed)
-                          TextButton.icon(
-                            onPressed: () => context.read<AssistantCubit>().send(m.text, isRetry: true),
-                            icon: const Icon(Icons.refresh, size: 16),
-                            label: const Text('No se envió. Reintentar'),
+        child: Column(
+          children: [
+            Expanded(
+              child: BlocConsumer<AssistantCubit, AssistantState>(
+                listener:
+                    (_, __) => WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (_scroll.hasClients) {
+                        _scroll.animateTo(
+                          _scroll.position.maxScrollExtent,
+                          duration: KMotion.medium,
+                          curve: Curves.easeOut,
+                        );
+                      }
+                    }),
+                builder:
+                    (context, s) => ListView.builder(
+                      controller: _scroll,
+                      padding: const EdgeInsets.all(KSpace.md),
+                      itemCount: s.messages.length + (s.sending ? 1 : 0),
+                      itemBuilder: (context, i) {
+                        if (i == s.messages.length) {
+                          return const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Padding(padding: EdgeInsets.all(8), child: Text('Escribiendo…')),
+                          );
+                        }
+                        final m = s.messages[i];
+                        if (m.fromUser) {
+                          return Align(
+                            alignment: Alignment.centerRight,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.symmetric(vertical: 4),
+                                  padding: const EdgeInsets.all(12),
+                                  constraints: const BoxConstraints(maxWidth: 300),
+                                  decoration: BoxDecoration(
+                                    color: scheme.primary,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Text(m.text, style: TextStyle(color: scheme.onPrimary)),
+                                ),
+                                if (m.failed)
+                                  TextButton.icon(
+                                    onPressed: () => context.read<AssistantCubit>().send(m.text, isRetry: true),
+                                    icon: const Icon(Icons.refresh, size: 16),
+                                    label: const Text('No se envió. Reintentar'),
+                                  ),
+                              ],
+                            ),
+                          );
+                        }
+                        final r = m.reply!;
+                        return Align(
+                          alignment: Alignment.centerLeft,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.symmetric(vertical: 4),
+                                padding: const EdgeInsets.all(12),
+                                constraints: const BoxConstraints(maxWidth: 320),
+                                decoration: BoxDecoration(
+                                  color: scheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Semantics(liveRegion: i == s.messages.length - 1, child: Text(r.text)),
+                              ),
+                              if (r.actionDeeplink != null)
+                                FilledButton.tonal(
+                                  onPressed:
+                                      () => sl<DeepLinks>().open(context, r.actionDeeplink!, source: 'assistant'),
+                                  child: Text(r.actionLabel ?? 'Abrir'),
+                                ),
+                              if (i == s.messages.length - 1)
+                                Wrap(
+                                  spacing: 8,
+                                  children: [
+                                    for (final sug in r.suggestions)
+                                      ActionChip(label: Text(sug), onPressed: () => _send(sug)),
+                                  ],
+                                ),
+                              if (r.source == 'llm')
+                                Text(
+                                  'Respuesta generada con IA a partir de datos agregados',
+                                  style: Theme.of(context).textTheme.labelSmall,
+                                ),
+                            ],
                           ),
-                      ]),
-                    );
-                  }
-                  final r = m.reply!;
-                  return Align(
-                    alignment: Alignment.centerLeft,
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Container(
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        padding: const EdgeInsets.all(12),
-                        constraints: const BoxConstraints(maxWidth: 320),
-                        decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(16)),
-                        child: Semantics(liveRegion: i == s.messages.length - 1, child: Text(r.text)),
-                      ),
-                      if (r.actionDeeplink != null)
-                        FilledButton.tonal(
-                          onPressed: () => sl<DeepLinks>().open(context, r.actionDeeplink!, source: 'assistant'),
-                          child: Text(r.actionLabel ?? 'Abrir'),
-                        ),
-                      if (i == s.messages.length - 1)
-                        Wrap(spacing: 8, children: [for (final sug in r.suggestions) ActionChip(label: Text(sug), onPressed: () => _send(sug))]),
-                      if (r.source == 'llm')
-                        Text('Respuesta generada con IA a partir de datos agregados', style: Theme.of(context).textTheme.labelSmall),
-                    ]),
-                  );
-                },
+                        );
+                      },
+                    ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(KSpace.sm),
-            child: Row(children: [
-              Expanded(
-                child: TextField(
-                  key: const Key('assistant_input'),
-                  controller: _input,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: (_) => _send(),
-                  decoration: const InputDecoration(hintText: 'Escribe tu pregunta', border: OutlineInputBorder()),
-                ),
+            Padding(
+              padding: const EdgeInsets.all(KSpace.sm),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      key: const Key('assistant_input'),
+                      controller: _input,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _send(),
+                      decoration: const InputDecoration(hintText: 'Escribe tu pregunta', border: OutlineInputBorder()),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton.filled(tooltip: 'Enviar', onPressed: _send, icon: const Icon(Icons.send_rounded)),
+                ],
               ),
-              const SizedBox(width: 8),
-              IconButton.filled(tooltip: 'Enviar', onPressed: _send, icon: const Icon(Icons.send_rounded)),
-            ]),
-          ),
-        ]),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -27,14 +27,11 @@ void main() {
   });
 
   Widget app() => MaterialApp(
-        home: MultiBlocProvider(
-          providers: [
-            BlocProvider<SessionCubit>.value(value: session),
-            BlocProvider<LoginCubit>.value(value: login),
-          ],
-          child: const LoginView(),
-        ),
-      );
+    home: MultiBlocProvider(
+      providers: [BlocProvider<SessionCubit>.value(value: session), BlocProvider<LoginCubit>.value(value: login)],
+      child: const LoginView(),
+    ),
+  );
 
   testWidgets('valida campos vacíos sin llamar al servidor', (tester) async {
     await tester.pumpWidget(app());
@@ -55,9 +52,9 @@ void main() {
   });
 
   testWidgets('muestra el error del servidor', (tester) async {
-    when(() => login.state).thenReturn(
-      const LoginState(failure: UnauthorizedFailure('Usuario o contraseña incorrectos')),
-    );
+    when(
+      () => login.state,
+    ).thenReturn(const LoginState(failure: UnauthorizedFailure('Usuario o contraseña incorrectos')));
     await tester.pumpWidget(app());
     expect(find.byKey(const Key('login_error')), findsOneWidget);
     expect(find.text('Usuario o contraseña incorrectos'), findsOneWidget);

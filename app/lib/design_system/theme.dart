@@ -9,30 +9,31 @@ class KTheme {
     final generated = ColorScheme.fromSeed(seedColor: seed, brightness: brightness);
     // Texto sobre el color de marca según su luminancia: oscuro sobre naranja, blanco sobre café.
     final onSeed = ThemeData.estimateBrightnessForColor(seed) == Brightness.dark ? Colors.white : KColors.ink;
-    final scheme = light
-        ? generated.copyWith(
-            primary: seed,
-            onPrimary: onSeed,
-            primaryContainer: KColors.brandPeach,
-            onPrimaryContainer: KColors.onPeach,
-            secondary: KColors.brandCafe,
-            onSecondary: Colors.white,
-            tertiaryContainer: KColors.brandPeach,
-            onTertiaryContainer: KColors.onPeach,
-            surface: Colors.white,
-            onSurface: KColors.ink,
-            onSurfaceVariant: KColors.inkMuted,
-            outline: KColors.inkMuted,
-            outlineVariant: KColors.line,
-            error: KColors.negative,
-          )
-        : generated.copyWith(
-            primary: segment == 'premium' ? KColors.brandPeach : KColors.brandOrangeLight,
-            onPrimary: KColors.ink,
-            secondary: KColors.brandPeach,
-            surface: KColors.darkSurface,
-            outlineVariant: KColors.darkLine,
-          );
+    final scheme =
+        light
+            ? generated.copyWith(
+              primary: seed,
+              onPrimary: onSeed,
+              primaryContainer: KColors.brandPeach,
+              onPrimaryContainer: KColors.onPeach,
+              secondary: KColors.brandCafe,
+              onSecondary: Colors.white,
+              tertiaryContainer: KColors.brandPeach,
+              onTertiaryContainer: KColors.onPeach,
+              surface: Colors.white,
+              onSurface: KColors.ink,
+              onSurfaceVariant: KColors.inkMuted,
+              outline: KColors.inkMuted,
+              outlineVariant: KColors.line,
+              error: KColors.negative,
+            )
+            : generated.copyWith(
+              primary: segment == 'premium' ? KColors.brandPeach : KColors.brandOrangeLight,
+              onPrimary: KColors.ink,
+              secondary: KColors.brandPeach,
+              surface: KColors.darkSurface,
+              outlineVariant: KColors.darkLine,
+            );
     final base = ThemeData(useMaterial3: true, colorScheme: scheme, brightness: brightness);
     final text = base.textTheme.apply(bodyColor: scheme.onSurface, displayColor: scheme.onSurface);
     return base.copyWith(

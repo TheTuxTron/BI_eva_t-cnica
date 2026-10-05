@@ -9,7 +9,11 @@ import '../network/network_health.dart';
 enum LinkStatus { online, offline }
 
 class ConnectivityState extends Equatable {
-  const ConnectivityState({this.link = LinkStatus.online, this.quality = NetworkQuality.healthy, this.justRecovered = false});
+  const ConnectivityState({
+    this.link = LinkStatus.online,
+    this.quality = NetworkQuality.healthy,
+    this.justRecovered = false,
+  });
   final LinkStatus link;
   final NetworkQuality quality;
   final bool justRecovered;
@@ -25,8 +29,8 @@ class ConnectivityState extends Equatable {
 /// Al recuperarse la conexión emite justRecovered para que las pantallas refresquen.
 class ConnectivityCubit extends Cubit<ConnectivityState> {
   ConnectivityCubit({required NetworkHealth health, Stream<List<ConnectivityResult>>? changes})
-      : _health = health,
-        super(const ConnectivityState()) {
+    : _health = health,
+      super(const ConnectivityState()) {
     _health.addListener(_onHealth);
     _sub = (changes ?? Connectivity().onConnectivityChanged).listen(_onLink);
   }
@@ -37,11 +41,13 @@ class ConnectivityCubit extends Cubit<ConnectivityState> {
   void _onLink(List<ConnectivityResult> results) {
     final offline = results.isEmpty || results.every((r) => r == ConnectivityResult.none);
     final wasOffline = state.isOffline;
-    emit(ConnectivityState(
-      link: offline ? LinkStatus.offline : LinkStatus.online,
-      quality: _health.value,
-      justRecovered: wasOffline && !offline,
-    ));
+    emit(
+      ConnectivityState(
+        link: offline ? LinkStatus.offline : LinkStatus.online,
+        quality: _health.value,
+        justRecovered: wasOffline && !offline,
+      ),
+    );
   }
 
   void _onHealth() {

@@ -31,7 +31,9 @@ void main() {
       'theme': {'segment': 'premium', 'seedColor': '#1F3A5F', 'mode': 'dark'},
       'sections': [],
     });
-    when(() => repo.watchHome()).thenAnswer((_) => Stream<Resource<SduiScreen>>.fromIterable([const Resource.loading(), Resource(data: screen)]));
+    when(
+      () => repo.watchHome(),
+    ).thenAnswer((_) => Stream<Resource<SduiScreen>>.fromIterable([const Resource.loading(), Resource(data: screen)]));
     final c = HomeExperienceCubit(repo, theme, telemetry);
     await c.load();
     expect(theme.state.segment, 'premium');
@@ -39,7 +41,12 @@ void main() {
   });
 
   test('sin servicio y sin caché: usa la experiencia embebida (nunca pantalla vacía)', () async {
-    when(() => repo.watchHome()).thenAnswer((_) => Stream<Resource<SduiScreen>>.fromIterable([const Resource.loading(), const Resource(error: ServiceUnavailableFailure('caído', code: 'X'))]));
+    when(() => repo.watchHome()).thenAnswer(
+      (_) => Stream<Resource<SduiScreen>>.fromIterable([
+        const Resource.loading(),
+        const Resource(error: ServiceUnavailableFailure('caído', code: 'X')),
+      ]),
+    );
     final c = HomeExperienceCubit(repo, theme, telemetry);
     await c.load();
     expect(c.state.data!.isFallback, isTrue);

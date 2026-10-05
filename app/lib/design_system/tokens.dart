@@ -60,7 +60,13 @@ Color hexColor(String? hex, {Color fallback = KColors.brandDefault}) {
 /// `Theme.of(context).extension<KBrand>()!` o `KBrand.of(context)`.
 @immutable
 class KBrand extends ThemeExtension<KBrand> {
-  const KBrand({required this.action, required this.hero, required this.onHero, required this.onHeroMuted, required this.heroAccent});
+  const KBrand({
+    required this.action,
+    required this.hero,
+    required this.onHero,
+    required this.onHeroMuted,
+    required this.heroAccent,
+  });
 
   /// Color para textos, enlaces e íconos interactivos (siempre con contraste AA).
   final Color action;
@@ -73,7 +79,8 @@ class KBrand extends ThemeExtension<KBrand> {
   /// Detalle de acento sobre el hero (línea, chip).
   final Color heroAccent;
 
-  static KBrand of(BuildContext context) => Theme.of(context).extension<KBrand>() ?? KBrand.forSegment('clasico', Brightness.light);
+  static KBrand of(BuildContext context) =>
+      Theme.of(context).extension<KBrand>() ?? KBrand.forSegment('clasico', Brightness.light);
 
   /// Cada segmento tiene su propia expresión, siempre dentro de la marca:
   /// joven = naranja vibrante en degradé; clásico = naranja sólido; premium = café profundo con acento naranja.
@@ -83,7 +90,11 @@ class KBrand extends ThemeExtension<KBrand> {
       case 'premium':
         return KBrand(
           action: light ? KColors.brandCafe : KColors.brandPeach,
-          hero: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [KColors.brandCafe, KColors.brandCafeDeep]),
+          hero: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [KColors.brandCafe, KColors.brandCafeDeep],
+          ),
           onHero: Colors.white,
           onHeroMuted: KColors.brandPeach,
           heroAccent: KColors.brandOrange,
@@ -91,7 +102,11 @@ class KBrand extends ThemeExtension<KBrand> {
       case 'joven':
         return KBrand(
           action: light ? KColors.brandOrangeText : KColors.brandOrangeLight,
-          hero: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [KColors.brandOrange, KColors.brandOrangeLight]),
+          hero: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [KColors.brandOrange, KColors.brandOrangeLight],
+          ),
           onHero: KColors.ink,
           onHeroMuted: KColors.brandCafeDeep,
           heroAccent: KColors.ink,
@@ -109,12 +124,12 @@ class KBrand extends ThemeExtension<KBrand> {
 
   @override
   KBrand copyWith({Color? action, Gradient? hero, Color? onHero, Color? onHeroMuted, Color? heroAccent}) => KBrand(
-        action: action ?? this.action,
-        hero: hero ?? this.hero,
-        onHero: onHero ?? this.onHero,
-        onHeroMuted: onHeroMuted ?? this.onHeroMuted,
-        heroAccent: heroAccent ?? this.heroAccent,
-      );
+    action: action ?? this.action,
+    hero: hero ?? this.hero,
+    onHero: onHero ?? this.onHero,
+    onHeroMuted: onHeroMuted ?? this.onHeroMuted,
+    heroAccent: heroAccent ?? this.heroAccent,
+  );
 
   @override
   KBrand lerp(ThemeExtension<KBrand>? other, double t) {

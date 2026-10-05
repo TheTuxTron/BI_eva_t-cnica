@@ -25,6 +25,10 @@ class FxRepository {
   final ApiClient api;
   final CacheStore cache;
 
-  Stream<Resource<FxRates>> watchRates() =>
-      staleWhileRevalidate(cache: cache, key: 'fx', fetch: () => api.get<Json>('/v1/fx/rates'), decode: FxRates.fromJson);
+  Stream<Resource<FxRates>> watchRates() => staleWhileRevalidate(
+    cache: cache,
+    key: 'fx',
+    fetch: () => api.get<Json>('/v1/fx/rates'),
+    decode: FxRates.fromJson,
+  );
 }

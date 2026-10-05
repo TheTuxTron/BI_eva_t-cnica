@@ -17,7 +17,11 @@ class ScriptedAdapter implements HttpClientAdapter {
   final List<Map<String, dynamic>> sentHeaders = [];
 
   @override
-  Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
     requests.add(options);
     sentHeaders.add(Map<String, dynamic>.of(options.headers));
     if (script.isEmpty) throw StateError('Sin más respuestas guionadas para ${options.method} ${options.path}');
@@ -30,7 +34,8 @@ class ScriptedAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
-ResponseBody jsonBody(int status, Object body, {Map<String, List<String>> headers = const {}}) => ResponseBody.fromString(
+ResponseBody jsonBody(int status, Object body, {Map<String, List<String>> headers = const {}}) =>
+    ResponseBody.fromString(
       jsonEncode(body),
       status,
       headers: {
@@ -51,7 +56,8 @@ class FakeTelemetry implements Telemetry {
   @override
   void breadcrumb(String message, {String category = 'app'}) {}
   @override
-  void recordError(Object error, StackTrace? stack, {bool fatal = false, Map<String, Object?> context = const {}}) => errors.add(error);
+  void recordError(Object error, StackTrace? stack, {bool fatal = false, Map<String, Object?> context = const {}}) =>
+      errors.add(error);
   @override
   void setUser(String? userId) {}
 }

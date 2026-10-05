@@ -23,7 +23,7 @@ jobs:
           base=${{ github.event.pull_request.base.sha || github.event.before }}
           if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then base=$(git rev-list --max-parents=0 HEAD); fi
           git log --format=%s "$base"..HEAD | while read -r msg; do
-            ./tool/hooks/check_commit_msg.sh "$msg"
+            bash ./tool/hooks/check_commit_msg.sh "$msg"
           done
 
   bff:
@@ -75,7 +75,7 @@ jobs:
           sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
       - name: Plataformas
         working-directory: app
-        run: ./tool/setup_platforms.sh
+        run: bash ./tool/setup_platforms.sh
       - uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34

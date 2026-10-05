@@ -12,6 +12,8 @@ class AuthModule extends FeatureModule {
 
   @override
   void registerDependencies(GetIt sl) {
-    sl.registerLazySingleton(() => AuthRepository(api: sl<ApiClient>(), tokens: sl<TokenStore>(), cache: sl<CacheStore>()));
+    sl.registerLazySingleton(
+      () => AuthRepository(api: sl<ApiClient>(), tokens: sl<TokenStore>(), cache: sl<CacheStore>()),
+    );
   }
 }

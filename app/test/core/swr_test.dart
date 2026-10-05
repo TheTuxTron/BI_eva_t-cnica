@@ -15,7 +15,8 @@ void main() {
   int decode(Object? j) => (j! as Map)['v'] as int;
 
   test('sin caché: loading → dato fresco, y lo persiste', () async {
-    final states = await staleWhileRevalidate(cache: cache, key: 'k', fetch: () async => {'v': 1}, decode: decode).toList();
+    final states =
+        await staleWhileRevalidate(cache: cache, key: 'k', fetch: () async => {'v': 1}, decode: decode).toList();
     expect(states.first.isInitialLoading, isTrue);
     expect(states.last.data, 1);
     expect(states.last.isStale, isFalse);
@@ -24,12 +25,13 @@ void main() {
 
   test('con caché y red caída: muestra caché marcada como desactualizada', () async {
     await cache.write('k', {'v': 7});
-    final states = await staleWhileRevalidate<int>(
-      cache: cache,
-      key: 'k',
-      fetch: () async => throw const NetworkFailure(),
-      decode: decode,
-    ).toList();
+    final states =
+        await staleWhileRevalidate<int>(
+          cache: cache,
+          key: 'k',
+          fetch: () async => throw const NetworkFailure(),
+          decode: decode,
+        ).toList();
     expect(states.first.data, 7);
     expect(states.first.isRefreshing, isTrue);
     expect(states.last.data, 7);
@@ -39,13 +41,20 @@ void main() {
   });
 
   test('sin caché y red caída: error fatal (única situación con pantalla de error)', () async {
-    final last = await staleWhileRevalidate<int>(cache: cache, key: 'k', fetch: () async => throw const TimeoutFailure(), decode: decode).last;
+    final last =
+        await staleWhileRevalidate<int>(
+          cache: cache,
+          key: 'k',
+          fetch: () async => throw const TimeoutFailure(),
+          decode: decode,
+        ).last;
     expect(last.isFatal, isTrue);
   });
 
   test('caché corrupta se ignora sin romper', () async {
     await cache.write('k', {'otro': 'formato'});
-    final states = await staleWhileRevalidate(cache: cache, key: 'k', fetch: () async => {'v': 2}, decode: decode).toList();
+    final states =
+        await staleWhileRevalidate(cache: cache, key: 'k', fetch: () async => {'v': 2}, decode: decode).toList();
     expect(states.first.data, isNull);
     expect(states.last.data, 2);
   });

@@ -7,7 +7,13 @@ import 'sdui_registry.dart';
 /// Renderiza una lista de secciones. Componentes desconocidos (de una versión más
 /// nueva del servidor) se omiten y se reportan; un componente que falla se aísla.
 class SduiRenderer extends StatelessWidget {
-  const SduiRenderer({super.key, required this.sections, required this.registry, required this.telemetry, this.spacing = 16});
+  const SduiRenderer({
+    super.key,
+    required this.sections,
+    required this.registry,
+    required this.telemetry,
+    this.spacing = 16,
+  });
   final List<SduiSection> sections;
   final SduiRegistry registry;
   final Telemetry telemetry;

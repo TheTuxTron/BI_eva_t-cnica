@@ -23,17 +23,20 @@ class HomeExperienceCubit extends Cubit<Resource<SduiScreen>> {
   Future<void> load() async {
     await _sub?.cancel();
     final done = Completer<void>();
-    _sub = _repo.watchHome().listen((r) {
-      if (r.data != null && r.error == null && !r.fromCache) _theme.applyServerTheme(r.data!.theme);
-      if (r.isFatal) {
-        _telemetry.event('home_fallback_rendered', {'error': r.error.runtimeType.toString()});
-        emit(Resource(data: fallback, error: r.error));
-        return;
-      }
-      emit(r);
-    }, onDone: () {
-      if (!done.isCompleted) done.complete();
-    });
+    _sub = _repo.watchHome().listen(
+      (r) {
+        if (r.data != null && r.error == null && !r.fromCache) _theme.applyServerTheme(r.data!.theme);
+        if (r.isFatal) {
+          _telemetry.event('home_fallback_rendered', {'error': r.error.runtimeType.toString()});
+          emit(Resource(data: fallback, error: r.error));
+          return;
+        }
+        emit(r);
+      },
+      onDone: () {
+        if (!done.isCompleted) done.complete();
+      },
+    );
     return done.future;
   }
 

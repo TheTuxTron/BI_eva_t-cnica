@@ -12,7 +12,8 @@ class PersonalizationModule extends FeatureModule {
   String get name => 'personalization';
 
   @override
-  void registerDependencies(GetIt sl) => sl.registerLazySingleton(() => ExperienceRepository(sl<ApiClient>(), sl<CacheStore>()));
+  void registerDependencies(GetIt sl) =>
+      sl.registerLazySingleton(() => ExperienceRepository(sl<ApiClient>(), sl<CacheStore>()));
 
   @override
   void registerComponents(SduiRegistry registry) => registerCommonComponents(registry);

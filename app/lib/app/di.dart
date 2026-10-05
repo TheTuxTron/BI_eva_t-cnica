@@ -34,16 +34,16 @@ const kAppVersion = '1.0.0';
 
 /// Dominios funcionales registrados. Agregar un dominio = agregar su módulo aquí.
 List<FeatureModule> buildModules({bool devTools = true}) => [
-      AuthModule(),
-      AccountsModule(),
-      TransfersModule(),
-      PersonalizationModule(),
-      FxModule(),
-      MicroappsModule(),
-      NotificationsModule(),
-      AssistantModule(),
-      if (devTools) DiagnosticsModule(),
-    ];
+  AuthModule(),
+  AccountsModule(),
+  TransfersModule(),
+  PersonalizationModule(),
+  FxModule(),
+  MicroappsModule(),
+  NotificationsModule(),
+  AssistantModule(),
+  if (devTools) DiagnosticsModule(),
+];
 
 /// Composición de dependencias. [overrides] permite a los tests reemplazar piezas
 /// (p. ej. PushService o TokenStore) antes de que se registren las reales.
@@ -61,10 +61,7 @@ Future<List<FeatureModule>> configureDependencies(
 
   final behavior = BehaviorEventsTelemetry((events) => sl<ExperienceRepository>().sendEvents(events));
   sl.registerSingleton<BehaviorEventsTelemetry>(behavior);
-  sl.registerSingleton<Telemetry>(CompositeTelemetry([
-    ConsoleTelemetry(),
-    behavior,
-  ]));
+  sl.registerSingleton<Telemetry>(CompositeTelemetry([ConsoleTelemetry(), behavior]));
 
   final base = BaseOptions(
     baseUrl: env.apiBaseUrl,
@@ -78,7 +75,11 @@ Future<List<FeatureModule>> configureDependencies(
   final refreshDio = Dio(base);
   dio.interceptors.addAll([
     RequestIdInterceptor(appVersion: kAppVersion, platform: platform),
-    AuthInterceptor(tokens: sl<TokenStore>(), refreshDio: refreshDio, onSessionExpired: () => sl<SessionCubit>().expire()),
+    AuthInterceptor(
+      tokens: sl<TokenStore>(),
+      refreshDio: refreshDio,
+      onSessionExpired: () => sl<SessionCubit>().expire(),
+    ),
     RetryInterceptor(dio: dio, telemetry: sl<Telemetry>()),
     TelemetryInterceptor(sl<Telemetry>(), sl<NetworkHealth>()),
   ]);

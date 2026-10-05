@@ -10,12 +10,19 @@ void main() {
       final s = SduiScreen.fromJson({
         'schemaVersion': 1,
         'sections': [
-          {'id': 'a', 'type': 'banner', 'props': {'title': 'Hola'}},
+          {
+            'id': 'a',
+            'type': 'banner',
+            'props': {'title': 'Hola'},
+          },
           {'type': 'sin_id'},
           'basura',
           {'id': 'b', 'type': 'greeting'},
         ],
-        'meta': {'segment': 'joven', 'reasons': ['Cliente joven']},
+        'meta': {
+          'segment': 'joven',
+          'reasons': ['Cliente joven'],
+        },
       });
       expect(s.sections.map((e) => e.id), ['a', 'b']);
       expect(s.sections.first.str('title'), 'Hola');
@@ -59,11 +66,17 @@ void main() {
   });
   group('URL de micro-app alcanzable desde el dispositivo', () {
     test('reescribe localhost al host de la API (emulador)', () {
-      final u = reachableUrl(Uri.parse('http://localhost:8080/microapps/x/index.html'), Uri.parse('http://10.0.2.2:8080'));
+      final u = reachableUrl(
+        Uri.parse('http://localhost:8080/microapps/x/index.html'),
+        Uri.parse('http://10.0.2.2:8080'),
+      );
       expect(u.toString(), 'http://10.0.2.2:8080/microapps/x/index.html');
     });
     test('respeta URLs públicas', () {
-      final u = reachableUrl(Uri.parse('https://cdn.kinti.ec/microapps/x/index.html'), Uri.parse('http://10.0.2.2:8080'));
+      final u = reachableUrl(
+        Uri.parse('https://cdn.kinti.ec/microapps/x/index.html'),
+        Uri.parse('http://10.0.2.2:8080'),
+      );
       expect(u.host, 'cdn.kinti.ec');
     });
   });

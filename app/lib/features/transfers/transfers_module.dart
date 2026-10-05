@@ -15,6 +15,6 @@ class TransfersModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
-        GoRoute(path: '/transfer', builder: (_, s) => TransferPage(fromAccountId: s.uri.queryParameters['from'])),
-      ];
+    GoRoute(path: '/transfer', builder: (_, s) => TransferPage(fromAccountId: s.uri.queryParameters['from'])),
+  ];
 }

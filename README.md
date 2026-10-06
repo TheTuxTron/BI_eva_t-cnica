@@ -1,23 +1,23 @@
 # Kinti · Banca digital personalizada
 
-Plataforma financiera 100 % digital construida con **Flutter** y un **BFF en Node.js**. Incluye:
+Plataforma financiera construida en **Flutter** y un **BFF en Node.js**. Incluye:
 
 - onboarding sin agencia;
 - cuentas, saldos y movimientos;
 - transferencias seguras ante reintentos;
-- una experiencia que el servidor adapta a cada cliente (Server-Driven UI);
+- una experiencia que el servidor adapta a cada tipo de cliente (Server-Driven UI);
 - un ecosistema de micro-apps de terceros;
-- notificaciones push;
-- un asistente financiero;
+- notificaciones push para ayudar al cliente;
+- un asistente financiero para dudas generales;
 - resiliencia demostrable ante redes malas y caídas parciales.
 
-> *Kinti* significa colibrí en kichwa.
+> *Kinti* significa colibrí en kichwa, se le dió ese nombre porque relacionamos el colibrí con un animal veloz y eficaz así como nuestro manejo de la plataforma financiero.
 
 | | |
 |---|---|
 | Arquitectura y diagramas | [`docs/architecture.md`](docs/architecture.md) |
 | Decisiones (ADR) | [`docs/adr/`](docs/adr/README.md) |
-| Design system y paleta (marca Banco Internacional) | [`docs/design-system.md`](docs/design-system.md) |
+| Design system y paleta (usando la marca de colores del Banco Internacional) | [`docs/design-system.md`](docs/design-system.md) |
 | Revisión funcional por módulo (QA) | [`docs/qa-modulos.md`](docs/qa-modulos.md) |
 | Despliegue, operación y monitoreo | [`docs/deployment-operations.md`](docs/deployment-operations.md) |
 | Conectividad limitada y degradación | [`docs/resilience.md`](docs/resilience.md) |

@@ -78,10 +78,7 @@ class _DetailViewState extends State<_DetailView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (account != null) ...[
-                          Text(
-                            '${account.typeLabel} ${account.maskedNumber}',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
+                          AccountNumberText(account: account, style: Theme.of(context).textTheme.bodyMedium),
                           AmountText(
                             account.balanceCents,
                             style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),

@@ -63,7 +63,9 @@ class _SessionScopeState extends State<SessionScope> {
           key: ValueKey(userId),
           providers: [
             BlocProvider(create: (_) => AccountsCubit(sl<AccountsRepository>())..load()),
-            BlocProvider(create: (_) => HomeExperienceCubit(sl<ExperienceRepository>(), sl<ThemeCubit>(), sl<Telemetry>())..load()),
+            BlocProvider(
+              create: (_) => HomeExperienceCubit(sl<ExperienceRepository>(), sl<ThemeCubit>(), sl<Telemetry>())..load(),
+            ),
             BlocProvider(create: (_) => FxCubit(sl<FxRepository>())..load()),
             BlocProvider(create: (_) => NotificationsCubit(sl<NotificationsRepository>())..refresh()),
           ],
@@ -90,25 +92,32 @@ class _SessionEffectsState extends State<_SessionEffects> {
   @override
   void initState() {
     super.initState();
-    _subs.add(_push.foreground.listen((n) {
-      if (!mounted || !widget.active) return;
-      final notifications = context.read<NotificationsCubit>();
-      final accounts = context.read<AccountsCubit>();
-      notifications.received(n);
-      // Un aviso de dinero recibido cambia saldos: se refrescan en segundo plano.
-      unawaited(accounts.load());
-      rootMessengerKey.currentState?.showSnackBar(SnackBar(
-        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(n.title, style: const TextStyle(fontWeight: FontWeight.w700)),
-          Text(n.body),
-        ]),
-        action: n.deeplink == null ? null : SnackBarAction(label: 'Ver', onPressed: () => _go(n.deeplink!)),
-        duration: const Duration(seconds: 5),
-      ));
-    }));
-    _subs.add(_push.opened.listen((link) {
-      if (widget.active) _go(link);
-    }));
+    _subs.add(
+      _push.foreground.listen((n) {
+        if (!mounted || !widget.active) return;
+        final notifications = context.read<NotificationsCubit>();
+        final accounts = context.read<AccountsCubit>();
+        notifications.received(n);
+        // Un aviso de dinero recibido cambia saldos: se refrescan en segundo plano.
+        unawaited(accounts.load());
+        rootMessengerKey.currentState?.showSnackBar(
+          SnackBar(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [Text(n.title, style: const TextStyle(fontWeight: FontWeight.w700)), Text(n.body)],
+            ),
+            action: n.deeplink == null ? null : SnackBarAction(label: 'Ver', onPressed: () => _go(n.deeplink!)),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }),
+    );
+    _subs.add(
+      _push.opened.listen((link) {
+        if (widget.active) _go(link);
+      }),
+    );
     if (widget.active) unawaited(_push.start());
   }
 

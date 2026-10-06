@@ -9,6 +9,7 @@ import '../../../design_system/widgets.dart';
 import '../../../sdui/sdui_models.dart';
 import '../data/accounts_repository.dart';
 import 'accounts_cubit.dart';
+import 'package:flutter/services.dart';
 
 const kCategories = <String, (String, IconData)>{
   'alimentacion': ('Supermercado', Icons.shopping_basket_outlined),
@@ -143,7 +144,7 @@ class AccountTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(account.alias, style: Theme.of(context).textTheme.titleSmall),
-              Text('${account.typeLabel} ${account.maskedNumber}', style: Theme.of(context).textTheme.bodySmall),
+              AccountNumberText(account: account, hidden: hidden),
             ],
           ),
         ),
@@ -176,6 +177,60 @@ class MovementTile extends StatelessWidget {
           style: Theme.of(context).textTheme.titleSmall,
         ),
       ),
+    );
+  }
+}
+
+class AccountNumberText extends StatelessWidget {
+  const AccountNumberText({super.key, required this.account, this.hidden = false, this.style});
+  final Account account;
+  final bool hidden;
+  final TextStyle? style;
+
+  static String group(String number) => number.replaceAllMapped(RegExp(r'.{1,4}'), (m) => '${m[0]} ').trim();
+
+  Future<void> _copy(BuildContext context) async {
+    await Clipboard.setData(ClipboardData(text: account.number));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Número de cuenta copiado'), duration: Duration(seconds: 2)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final text = '${account.typeLabel} · ${hidden ? account.maskedNumber : group(account.number)}';
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: Semantics(
+            // Dígito por dígito para lectores de pantalla.
+            label:
+                hidden
+                    ? '${account.typeLabel}, número de cuenta oculto'
+                    : '${account.typeLabel}, número de cuenta ${account.number.split('').join(' ')}',
+            excludeSemantics: true,
+            child: Text(
+              text,
+              key: ValueKey('account_number_${account.id}'),
+              overflow: TextOverflow.ellipsis,
+              style: (style ?? Theme.of(context).textTheme.bodySmall)?.copyWith(
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
+        ),
+        if (!hidden)
+          IconButton(
+            key: ValueKey('copy_account_${account.id}'),
+            tooltip: 'Copiar número de cuenta',
+            visualDensity: VisualDensity.compact,
+            iconSize: 18,
+            icon: const Icon(Icons.copy_rounded),
+            onPressed: () => _copy(context),
+          ),
+      ],
     );
   }
 }

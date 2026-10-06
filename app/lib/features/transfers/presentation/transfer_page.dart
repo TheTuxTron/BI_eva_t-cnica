@@ -96,121 +96,127 @@ class _FormViewState extends State<_FormView> {
 
     return Form(
       key: _form,
-      child: SingleChildScrollView(padding: const EdgeInsets.all(KSpace.lg), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text('Desde', style: Theme.of(context).textTheme.labelLarge),
-          const SizedBox(height: KSpace.sm),
-          if (accounts.isEmpty)
-            const Skeleton(height: 56)
-          else
-            DropdownButtonFormField<String>(
-              key: const Key('transfer_from'),
-              initialValue: s.fromAccountId,
-              isExpanded: true,
-              decoration: kInput(context, label: 'Cuenta origen'),
-              items: [
-                for (final a in accounts)
-                  DropdownMenuItem(
-                    value: a.id,
-                    child: Text(
-                      '${a.alias} ${a.maskedNumber} · ${Money.format(a.balanceCents)}',
-                      overflow: TextOverflow.ellipsis,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(KSpace.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Desde', style: Theme.of(context).textTheme.labelLarge),
+            const SizedBox(height: KSpace.sm),
+            if (accounts.isEmpty)
+              const Skeleton(height: 56)
+            else
+              DropdownButtonFormField<String>(
+                key: const Key('transfer_from'),
+                initialValue: s.fromAccountId,
+                isExpanded: true,
+                decoration: kInput(context, label: 'Cuenta origen'),
+                items: [
+                  for (final a in accounts)
+                    DropdownMenuItem(
+                      value: a.id,
+                      child: Text(
+                        '${a.alias} ${a.maskedNumber} · ${Money.format(a.balanceCents)}',
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-              ],
-              onChanged: (v) {
-                if (v != null) context.read<TransferCubit>().selectFrom(v);
+                ],
+                onChanged: (v) {
+                  if (v != null) context.read<TransferCubit>().selectFrom(v);
+                },
+              ),
+            if (accountsRes.isStale)
+              const Padding(
+                padding: EdgeInsets.only(top: KSpace.sm),
+                child: Text('El saldo mostrado puede no estar actualizado.'),
+              ),
+            const SizedBox(height: KSpace.lg),
+            Text('Para', style: Theme.of(context).textTheme.labelLarge),
+            const SizedBox(height: KSpace.sm),
+            if (others.isNotEmpty)
+              Wrap(
+                spacing: 8,
+                children: [
+                  for (final o in others)
+                    ActionChip(
+                      avatar: const Icon(Icons.person_outline, size: 18),
+                      label: Text('Mi ${o.alias.toLowerCase()} ${o.maskedNumber}'),
+                      onPressed: () {
+                        _to.text = o.number;
+                        context.read<TransferCubit>().setDestination(o.number);
+                      },
+                    ),
+                ],
+              ),
+            const SizedBox(height: KSpace.sm),
+            TextFormField(
+              key: const Key('transfer_to'),
+              controller: _to,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
+              onChanged: (v) => context.read<TransferCubit>().setDestination(v),
+              decoration: kInput(
+                context,
+                label: 'Número de cuenta Kinti',
+                error: s.recipientError,
+                prefix: const Icon(Icons.account_balance_outlined),
+                suffix:
+                    s.lookingUp
+                        ? const Padding(
+                          padding: EdgeInsets.all(14),
+                          child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+                        )
+                        : s.recipient != null
+                        ? const Icon(Icons.verified_rounded, color: KColors.positive)
+                        : null,
+                helper: s.recipient != null ? 'Titular: ${s.recipient!.holder}' : null,
+              ),
+              validator: (_) => s.recipient == null ? 'Verifica la cuenta destino' : null,
+            ),
+            const SizedBox(height: KSpace.md),
+            TextFormField(
+              key: const Key('transfer_amount'),
+              controller: _amount,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
+              decoration: kInput(
+                context,
+                label: 'Monto (USD)',
+                prefix: const Icon(Icons.attach_money),
+                helper: from == null ? null : 'Disponible: ${Money.format(from.balanceCents)}',
+              ),
+              validator: (v) {
+                final c = Money.parseToCents(v ?? '');
+                if (c == null || c <= 0) return 'Ingresa un monto válido';
+                if (from != null && c > from.balanceCents) return 'Saldo insuficiente';
+                return null;
               },
             ),
-          if (accountsRes.isStale)
-            const Padding(
-              padding: EdgeInsets.only(top: KSpace.sm),
-              child: Text('El saldo mostrado puede no estar actualizado.'),
+            const SizedBox(height: KSpace.md),
+            TextFormField(
+              key: const Key('transfer_desc'),
+              controller: _desc,
+              maxLength: 40,
+              decoration: kInput(context, label: 'Descripción (opcional)'),
             ),
-          const SizedBox(height: KSpace.lg),
-          Text('Para', style: Theme.of(context).textTheme.labelLarge),
-          const SizedBox(height: KSpace.sm),
-          if (others.isNotEmpty)
-            Wrap(
-              spacing: 8,
-              children: [
-                for (final o in others)
-                  ActionChip(
-                    avatar: const Icon(Icons.person_outline, size: 18),
-                    label: Text('Mi ${o.alias.toLowerCase()} ${o.maskedNumber}'),
-                    onPressed: () {
-                      _to.text = o.number;
-                      context.read<TransferCubit>().setDestination(o.number);
-                    },
-                  ),
-              ],
+            if (s.failure != null)
+              Text(s.failure!.message, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            const SizedBox(height: KSpace.md),
+            FilledButton(
+              key: const Key('transfer_continue'),
+              onPressed: () {
+                if (!(_form.currentState?.validate() ?? false)) return;
+                context.read<TransferCubit>().review(
+                  amountCents: Money.parseToCents(_amount.text)!,
+                  description: _desc.text,
+                  availableCents: from?.balanceCents ?? 0,
+                );
+              },
+              child: const Text('Continuar'),
             ),
-          const SizedBox(height: KSpace.sm),
-          TextFormField(
-            key: const Key('transfer_to'),
-            controller: _to,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
-            onChanged: (v) => context.read<TransferCubit>().setDestination(v),
-            decoration: kInput(
-              context,
-              label: 'Número de cuenta Kinti',
-              error: s.recipientError,
-              prefix: const Icon(Icons.account_balance_outlined),
-              suffix:
-                  s.lookingUp
-                      ? const Padding(
-                        padding: EdgeInsets.all(14),
-                        child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
-                      )
-                      : s.recipient != null
-                      ? const Icon(Icons.verified_rounded, color: KColors.positive)
-                      : null,
-              helper: s.recipient != null ? 'Titular: ${s.recipient!.holder}' : null,
-            ),
-            validator: (_) => s.recipient == null ? 'Verifica la cuenta destino' : null,
-          ),
-          const SizedBox(height: KSpace.md),
-          TextFormField(
-            key: const Key('transfer_amount'),
-            controller: _amount,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
-            decoration: kInput(
-              context,
-              label: 'Monto (USD)',
-              prefix: const Icon(Icons.attach_money),
-              helper: from == null ? null : 'Disponible: ${Money.format(from.balanceCents)}',
-            ),
-            validator: (v) {
-              final c = Money.parseToCents(v ?? '');
-              if (c == null || c <= 0) return 'Ingresa un monto válido';
-              if (from != null && c > from.balanceCents) return 'Saldo insuficiente';
-              return null;
-            },
-          ),
-          const SizedBox(height: KSpace.md),
-          TextFormField(
-            key: const Key('transfer_desc'),
-            controller: _desc,
-            maxLength: 40,
-            decoration: kInput(context, label: 'Descripción (opcional)'),
-          ),
-          if (s.failure != null) Text(s.failure!.message, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-          const SizedBox(height: KSpace.md),
-          FilledButton(
-            key: const Key('transfer_continue'),
-            onPressed: () {
-              if (!(_form.currentState?.validate() ?? false)) return;
-              context.read<TransferCubit>().review(
-                amountCents: Money.parseToCents(_amount.text)!,
-                description: _desc.text,
-                availableCents: from?.balanceCents ?? 0,
-              );
-            },
-            child: const Text('Continuar'),
-          ),
-        ],
-      )),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -11,10 +11,10 @@
 
 ## Cómo trabajé con la IA
 
-1. **Del requerimiento a un plan verificable.** Le di el PDF completo y le pedí cubrir cada punto. Trabajamos sobre una matriz de trazabilidad requisito → implementación → evidencia (ver README).
-2. **Decisiones primero, código después.** Antes de generar código se definieron las decisiones clave (BFF, SDUI, micro-apps con token de alcance mínimo, SWR, idempotencia) con sus alternativas. Validé cada una contra mi experiencia en el sector financiero: core bancario, Node.js/Express y Flutter.
+1. **Del requerimiento a un plan verificable.** Le di el PDF completo y le dí promps con especificaciones de como cubrir cada punto. Trabajamos sobre una matriz de trazabilidad requisito → implementación → evidencia (ver README).
+2. **Decisiones primero, código después.** Antes de generar código se definieron las decisiones clave (BFF, SDUI, micro-apps con token de alcance mínimo, SWR, idempotencia) con sus alternativas. Realicé la validación de cada una contra mi experiencia en el sector financiero: core bancario, Node.js/Express y Flutter.
 3. **Generación por capas con verificación inmediata.** El BFF se generó y **se ejecutó en el entorno de la IA**: 25 pruebas automatizadas pasando antes de seguir. La app Flutter se generó por capas (núcleo, design system, SDUI, features, ensamblaje, pruebas).
-4. **Revisión humana, compilación e integración.** Yo compilé, ejecuté en emulador/dispositivo, corregí, probé los escenarios degradados y grabé la demostración. Los commits en `main` reflejan ese proceso de integración.
+4. **Revisión humana, compilación e integración.** Yo compilé, ejecuté en emulador/dispositivo, fuí realizando las correcciones, realicé las pruebas de los escenarios degradados y grabé la demostración. Los commits en `main` reflejan ese proceso de integración.
 
 ## Qué hizo bien la IA
 
@@ -33,7 +33,7 @@ Estos ocurrieron de verdad durante el desarrollo y son la razón por la que la r
 - **APIs de tema que cambiaron entre versiones de Flutter** (`CardTheme` → `CardThemeData`, etc.). Se reemplazaron por widgets propios para no depender de la versión.
 - **Pruebas del BFF frágiles:** un patrón de `supertest` que creaba requests anidados falló en 6 pruebas y se reescribió.
 - **Posible condición de carrera en la micro-app:** el mensaje `ready` podía llegar antes de asignar la sesión. Se corrigió asignando el estado antes de cargar la página.
-- [Completar: otros ajustes hechos al probar en dispositivo]
+-  **Errores de UX/UI** errores de usabilidad e interfaz que se fueron arreglando con pruebas manuales de la aplicación. [Completar: otros ajustes hechos al probar en dispositivo]
 
 ## Impacto medido
 
@@ -46,13 +46,13 @@ Estos ocurrieron de verdad durante el desarrollo y son la razón por la que la r
 
 ## IA dentro del producto
 
-- **Asistente financiero:** con `ANTHROPIC_API_KEY` responde con un LLM a partir de **datos agregados** (sin número de cuenta, cédula ni nombres de comercios). Sin clave o ante fallas, usa un motor de intenciones determinístico, así la función nunca queda caída. La UI indica cuándo la respuesta fue generada con IA.
+- **Asistente financiero:** con `ANTHROPIC_API_KEY` responde con un LLM a partir de **datos agregados** (sin número de cuenta, cédula ni nombres de comercios). Sin clave o ante fallas, usa un motor de intenciones determinístico, así la función nunca queda caída.
 - **Insights:** se calculan de forma determinística a partir de los movimientos reales (comparación de 30 días contra los 30 anteriores), no con IA, para que sean auditables.
 
 ## Lineamientos que seguiría en un equipo
 
 - La IA propone y una persona aprueba: ningún cambio entra sin revisión ni pruebas.
-- No compartir datos de clientes reales ni secretos con herramientas externas; usar datos semilla.
+- No compartir datos de clientes reales ni secretos con herramientas externas; usar datos semilla y datos hipoteticos de usuarios reales.
 - Documentar en el PR cuándo hubo asistencia de IA relevante.
 
 ### Errores encontrados al compilar y probar en emulador (integración)

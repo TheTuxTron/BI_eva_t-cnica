@@ -1,22 +1,22 @@
 # Revisión funcional por módulo
 
-Fecha: 4 de octubre de 2026. **Backend:** 29 pruebas automatizadas en verde, incluido un recorrido completo de cliente nuevo y pruebas de regresión de los defectos encontrados. **App:** pruebas unitarias, de widgets y E2E descritas en el README. Este documento resume cada módulo, cómo se verificó, qué defectos aparecieron y cómo se corrigieron.
+Actualizado al 20 de octubre de 2026. **BFF:** 29 pruebas en verde, incluido un recorrido completo de cliente nuevo y pruebas de regresión de los defectos encontrados. **App:** 51 pruebas unitarias y de widgets en verde y 2 flujos E2E aprobados contra el BFF real. Este documento resume cada módulo, cómo se verificó, qué defectos aparecieron y cómo se corrigieron.
 
 ## Resumen
 
 | Módulo | Estado | Verificación automática | Defectos encontrados → corrección |
 |---|---|---|---|
-| Autenticación y sesión | ✅ | `auth.test.js` (6), `interceptors_test.dart`, `login_page_test.dart` | Usuario inexistente con token válido daba 500 → ahora 401 y vuelve a login |
+| Autenticación y sesión | ✅ | `auth.test.js` (6), `interceptors_test.dart`, `login_page_test.dart` | Usuario inexistente con token válido daba 500 → ahora 401 y vuelve a login. Pantalla roja breve al cerrar sesión → providers liberados tras la animación de salida |
 | Onboarding (apertura de cuenta) | ✅ | `auth.test.js`, `regressions.test.js` (recorrido completo), E2E onboarding | Datos perdidos al reiniciar el BFF (base en memoria) → SQLite en archivo; errores inesperados dejaban el botón cargando → los cubits capturan cualquier excepción; detalle técnico visible en debug |
-| Cuentas y movimientos | ✅ | `accounts.test.js`, `movements_cubit_test.dart` | — |
-| Transferencias | ✅ | `accounts.test.js` (idempotencia, fondos), `transfer_cubit_test.dart`, E2E crítico | — |
+| Cuentas y movimientos | ✅ | `accounts.test.js`, `movements_cubit_test.dart`, `account_number_test.dart` | Mejora: número de cuenta completo y copiable, enmascarado en modo privacidad |
+| Transferencias | ✅ | `accounts.test.js` (idempotencia, fondos), `transfer_cubit_test.dart`, E2E crítico | Campo de monto no construido con el teclado abierto → formulario con `SingleChildScrollView` |
 | Personalización (SDUI) | ✅ | `experience.test.js` (7), `sdui_models_test.dart`, `sdui_renderer_test.dart`, `home_experience_cubit_test.dart` | — |
-| Micro-app (simulador) | ✅ | `microapps.test.js`, `regressions.test.js`, pruebas del bridge y de la URL | **Error de conexión en el emulador**: el BFF devolvía `localhost` → URL deducida del `Host` + salvaguarda en la app |
+| Micro-app (simulador) | ✅ | `microapps.test.js`, `regressions.test.js`, pruebas del bridge y de la URL | **Error de conexión en el emulador**: el BFF devolvía `localhost` → URL deducida del `Host` + salvaguarda en la app. WebView bloqueada por HTTP en claro → permitido solo en el manifiesto de debug |
 | Tipo de cambio (tercero) | ✅ | `resilience.test.js` | — |
 | Notificaciones | ✅ | `accounts.test.js` (aviso al destinatario), E2E crítico (bandeja) | — |
 | Asistente | ✅ | `experience.test.js`, `regressions.test.js` | — |
 | Resiliencia / diagnóstico | ✅ | `resilience.test.js` (5), `interceptors_test.dart`, `swr_test.dart`, `connectivity_banner_test.dart` | — |
-| Build Android | ✅ | Compilación en emulador | Dio reciente (`transformTimeout`) y Sentry incompatible con Kotlin 2 → corregidos (ADR-009) |
+| Build Android | ✅ | Compilación en emulador | Dio reciente (`transformTimeout`) y Sentry incompatible con Kotlin 2 → corregidos (ADR-009). Gradle 8.14 con Java 25 → JDK 21 |
 
 ## Detalle y prueba manual sugerida
 
@@ -69,6 +69,8 @@ Fecha: 4 de octubre de 2026. **Backend:** 29 pruebas automatizadas en verde, inc
 
 ## Limitaciones conocidas (declaradas, no defectos)
 - El OTP se muestra en pantalla porque no hay proveedor SMS (`EXPOSE_OTP=true`, solo en demo).
-- Las push del sistema requieren configurar Firebase. Sin él se usa la bandeja con polling.
+- Las push del sistema requieren configurar Firebase; la demostración se ejecuta sin él y las notificaciones llegan por la bandeja con polling.
+- El BFF se ejecuta en local; `render.yaml` deja listo su despliegue.
+- El E2E en GitHub Actions es manual por la inestabilidad del emulador sin GPU; la validación de referencia es local.
 - Sin un proveedor de crashes conectado (ADR-009), la telemetría queda en logs estructurados y en eventos al BFF.
 - Las transferencias son solo entre cuentas Kinti.

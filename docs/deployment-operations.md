@@ -5,11 +5,11 @@
 | Entorno | BFF | App | Datos |
 |---|---|---|---|
 | `dev` | `npm run dev` local o docker-compose | `flutter run --dart-define=FLAVOR=dev` | Semilla determinística |
-| `e2e` | Levantado por CI | Emulador Android en CI | Semilla, reiniciada por ejecución |
-| `staging` | Render/contenedor, `EXPOSE_OTP=true` | Firebase App Distribution / TestFlight | Semilla |
+| `e2e` | Local, o workflow manual en GitHub Actions | Emulador Android | Semilla, reiniciada por ejecución |
+| `staging` | Contenedor en Render (`render.yaml`), `EXPOSE_OTP=true` | Firebase App Distribution / TestFlight | Semilla |
 | `prod` | Contenedores con réplicas, `EXPOSE_OTP=false`, `JWT_SECRET` desde un gestor de secretos | Play Store / App Store con staged rollout | Core real |
 
-La configuración de la app llega por `--dart-define` (`API_BASE_URL`, `FLAVOR`, `SENTRY_DSN`, `DEV_TOOLS`). El BFF se configura por variables de entorno (ver `bff/.env.example`). Ningún secreto de backend se compila en la app.
+La configuración de la app llega por `--dart-define` (`API_BASE_URL`, `FLAVOR`, `DEV_TOOLS`). El BFF se configura por variables de entorno (ver `bff/.env.example`). Ningún secreto de backend se compila en la app.
 
 ## 2. Pipeline
 
@@ -19,16 +19,17 @@ flowchart LR
   ci --> c1[Conventional Commits]
   ci --> c2[BFF: npm test]
   ci --> c3[App: format + analyze + tests + cobertura]
-  c2 & c3 --> e2e[E2E en emulador<br/>contra BFF real]
-  e2e --> img[Imagen BFF a GHCR<br/>tag = SHA]
+  c2 & c3 --> img[Imagen BFF a GHCR<br/>tag = SHA]
   img --> stg[Staging<br/>health check]
   stg --> prod[Producción<br/>rolling + rollback]
+  c3 --> e2e[E2E en emulador<br/>bajo demanda / antes de release]
   e2e --> build[Build app firmado]
   build --> dist[App Distribution / TestFlight]
   dist --> store[Tiendas: staged rollout 5→20→50→100 %]
 ```
 
 - **BFF:** imagen inmutable por commit (`ghcr.io/<owner>/kinti-bff:<sha>`) y despliegue rolling con `HEALTHCHECK` y `/health/ready`. El rollback es redesplegar la imagen anterior. El apagado ordenado (SIGTERM) deja terminar las requests en curso.
+- **E2E:** workflow manual (`e2e.yml`) con renderizado por software y timeout de 45 min; se ejecuta antes de cada release. Los emuladores sin GPU de GitHub Actions resultaron inestables para correr en cada push.
 - **App:** release candidate por tag. Firma con keystore en secretos de CI. Staged rollout con monitoreo de crash-free sessions antes de avanzar cada etapa. Se detiene ante una regresión.
 - **Cambios sin publicar la app:** campañas, orden y contenido del inicio (SDUI), feature flags (kill-switch por módulo), catálogo de micro-apps y versión mínima soportada (`/v1/config.minSupportedVersion`).
 
